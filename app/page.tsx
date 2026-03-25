@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import MapPlaceholder from "./components/MapPlaceholder";
+import GlobeView from "./components/GlobeView";
 import CityPanel from "./components/CityPanel";
 import { chicago } from "./lib/chicago";
 import { detroit } from "./lib/detroit";
@@ -20,7 +20,7 @@ export default function Home() {
 
   return (
     <main className="h-screen w-screen bg-black text-white flex">
-      <MapPlaceholder onSelectCity={setSelectedCity} />
+     <GlobeView />
       <CityPanel city={cities[selectedCity]} />
     </main>
   );
