@@ -14,7 +14,7 @@ export default function GlobeView({ locations, onSelectCity }: GlobeViewProps) {
   const points = locations.map((location) => ({
     lat: location.latitude,
     lng: location.longitude,
-    size: location.tier === 1 ? 0.35 : 0.25,
+    size: location.tier === 1 ? 0.6 : 0.4,
     city: location.city,
   }));
 

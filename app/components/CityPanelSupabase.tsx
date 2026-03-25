@@ -120,7 +120,7 @@ export default function CityPanelSupabase({
         </button>
 
         {loading && (
-          <p className="text-sm text-gray-400">Loading city data...</p>
+          <p className="text-sm text-gray-400">Loading scene data...</p>
         )}
 
         {isExpanded && !loading && (
