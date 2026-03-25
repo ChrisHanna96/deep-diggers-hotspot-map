@@ -2,6 +2,8 @@ export const chicago = {
   city: "Chicago",
   country: "United States",
   tier: 1,
+  lat: 41.8781,
+  lng: -87.6298,
   genres: ["House", "Deep House", "Acid House", "Jack"],
   summary:
     "Chicago isn’t just where house began—it’s where it learned how to breathe. Machines were pushed into something human here: drum patterns carrying feeling, repetition turning into something close to emotion.",

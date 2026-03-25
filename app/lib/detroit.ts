@@ -2,6 +2,8 @@ export const detroit = {
   city: "Detroit",
   country: "United States",
   tier: 1,
+  lat: 42.3314,
+  lng: -83.0458,
   genres: ["Techno", "Electro", "Machine Funk", "Deep Techno"],
   summary:
     "Detroit channels futurism, repetition, and emotional force into dance music that feels both mechanical and human. Its deeper routes move through machine rhythm, soul, and a sense of spatial tension.",

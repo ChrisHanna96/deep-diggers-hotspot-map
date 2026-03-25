@@ -2,6 +2,8 @@ export const bucharest = {
   city: "Bucharest",
   country: "Romania",
   tier: 2,
+  lat: 44.4268,
+  lng: 26.1025,
   genres: ["Minimal", "Romanian Minimal", "Microhouse", "Rhythmic Minimalism"],
   summary:
     "Bucharest is a key node for stripped, precise, long-form club music where tiny shifts in rhythm, space, and texture carry enormous weight. Its value lies in patience, reduction, and highly tuned DJ functionality.",
