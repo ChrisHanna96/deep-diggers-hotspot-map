@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone()
   const host = request.headers.get('host') || ''
 
-  if (host !== 'globaldeepdiggersundergroundmap.com') {
+  if (!host.includes('globaldeepdiggersundergroundmap.com')) {
     url.hostname = 'globaldeepdiggersundergroundmap.com'
     url.protocol = 'https:'
     return NextResponse.redirect(url)
