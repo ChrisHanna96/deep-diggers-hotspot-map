@@ -13,23 +13,54 @@ type GlobeViewProps = {
 
 export default function GlobeView({ locations, onSelectCity }: GlobeViewProps) {
   const globeRef = useRef<any>(null);
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    let frameId: number;
-    let lng = 0;
-
-    const rotate = () => {
-      if (globeRef.current) {
-        lng += 0.08;
-        globeRef.current.pointOfView({ lat: 20, lng, altitude: 2.2 }, 0);
-      }
-      frameId = requestAnimationFrame(rotate);
+    const startRotation = () => {
+      if (!globeRef.current) return;
+      const controls = globeRef.current.controls();
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.35;
+      controls.enableZoom = true;
+      controls.enablePan = false;
     };
 
-    rotate();
+    // slight delay so the globe instance is definitely ready
+    const initTimer = setTimeout(() => {
+      startRotation();
+    }, 300);
 
-    return () => cancelAnimationFrame(frameId);
+    return () => {
+      clearTimeout(initTimer);
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    };
   }, []);
+
+  const pauseRotation = () => {
+    if (!globeRef.current) return;
+    const controls = globeRef.current.controls();
+    controls.autoRotate = false;
+
+    if (resumeTimerRef.current) {
+      clearTimeout(resumeTimerRef.current);
+      resumeTimerRef.current = null;
+    }
+  };
+
+  const resumeRotationWithDelay = () => {
+    if (!globeRef.current) return;
+
+    if (resumeTimerRef.current) {
+      clearTimeout(resumeTimerRef.current);
+    }
+
+    resumeTimerRef.current = setTimeout(() => {
+      if (!globeRef.current) return;
+      const controls = globeRef.current.controls();
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.35;
+    }, 3000);
+  };
 
   const points = locations.map((location) => ({
     lat: location.latitude,
@@ -39,7 +70,14 @@ export default function GlobeView({ locations, onSelectCity }: GlobeViewProps) {
   }));
 
   return (
-    <div className="relative flex-1 h-screen overflow-hidden border-r border-gray-800">
+    <div
+      className="relative flex-1 h-screen overflow-hidden border-r border-gray-800"
+      onMouseDown={pauseRotation}
+      onMouseUp={resumeRotationWithDelay}
+      onMouseLeave={resumeRotationWithDelay}
+      onTouchStart={pauseRotation}
+      onTouchEnd={resumeRotationWithDelay}
+    >
       <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded bg-black/70 px-4 py-2 text-xs text-white">
         Drag the globe to explore scenes
       </div>
