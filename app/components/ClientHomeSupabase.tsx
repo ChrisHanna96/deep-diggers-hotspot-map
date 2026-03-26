@@ -12,9 +12,7 @@ type ClientHomeSupabaseProps = {
 export default function ClientHomeSupabase({
   locations,
 }: ClientHomeSupabaseProps) {
-  const [selectedCityName, setSelectedCityName] = useState<string>(
-    locations.length > 0 ? locations[0].city : ""
-  );
+  const [selectedCityName, setSelectedCityName] = useState<string>("");
 
   const selectedLocation = useMemo(() => {
     return (

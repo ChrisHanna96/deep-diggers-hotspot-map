@@ -3,32 +3,23 @@
 import { useEffect, useState } from "react";
 import {
   getAccessPoints,
+  getDiggingPath,
+  getDocumentaries,
+  getSceneDefiningMixes,
   getSceneEssentials,
   getSeminalTracks,
   getSonicIdentity,
 } from "../lib/queries";
-import { Location } from "../lib/types";
-
-type SceneEssentialsRow = {
-  notes: string | null;
-};
-
-type SonicIdentityRow = {
-  description: string;
-};
-
-type SeminalTrackRow = {
-  id: string;
-  artist: string;
-  track: string;
-  year: number | null;
-};
-
-type AccessPointRow = {
-  id: string;
-  name: string;
-  category: string;
-};
+import {
+  AccessPointRow,
+  DiggingPathStepRow,
+  DocumentaryRow,
+  Location,
+  SceneDefiningMixRow,
+  SceneEssentialsRow,
+  SeminalTrackRow,
+  SonicIdentityRow,
+} from "../lib/types";
 
 type CityPanelSupabaseProps = {
   location: Location | null;
@@ -44,6 +35,11 @@ export default function CityPanelSupabase({
     useState<SonicIdentityRow | null>(null);
   const [seminalTracks, setSeminalTracks] = useState<SeminalTrackRow[]>([]);
   const [accessPoints, setAccessPoints] = useState<AccessPointRow[]>([]);
+  const [diggingPath, setDiggingPath] = useState<DiggingPathStepRow[]>([]);
+  const [sceneDefiningMixes, setSceneDefiningMixes] = useState<
+    SceneDefiningMixRow[]
+  >([]);
+  const [documentaries, setDocumentaries] = useState<DocumentaryRow[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -54,24 +50,40 @@ export default function CityPanelSupabase({
       setLoading(true);
 
       try {
-        const [sceneData, sonicData, tracksData, accessData] =
-          await Promise.all([
-            getSceneEssentials(location.id),
-            getSonicIdentity(location.id),
-            getSeminalTracks(location.id),
-            getAccessPoints(location.id),
-          ]);
+        const [
+          sceneData,
+          sonicData,
+          tracksData,
+          accessData,
+          pathData,
+          mixesData,
+          documentariesData,
+        ] = await Promise.all([
+          getSceneEssentials(location.id),
+          getSonicIdentity(location.id),
+          getSeminalTracks(location.id),
+          getAccessPoints(location.id),
+          getDiggingPath(location.id),
+          getSceneDefiningMixes(location.id),
+          getDocumentaries(location.id),
+        ]);
 
         setSceneEssentials(sceneData);
         setSonicIdentity(sonicData);
         setSeminalTracks(tracksData);
         setAccessPoints(accessData);
+        setDiggingPath(pathData);
+        setSceneDefiningMixes(mixesData);
+        setDocumentaries(documentariesData);
       } catch (error) {
         console.error("Failed to load city panel data:", error);
         setSceneEssentials(null);
         setSonicIdentity(null);
         setSeminalTracks([]);
         setAccessPoints([]);
+        setDiggingPath([]);
+        setSceneDefiningMixes([]);
+        setDocumentaries([]);
       } finally {
         setLoading(false);
       }
@@ -94,18 +106,17 @@ export default function CityPanelSupabase({
         <div>
           <h1 className="text-2xl font-semibold">{location.city}</h1>
           <p className="mt-1 text-sm text-gray-400">{location.country}</p>
-          <p className="mt-3 text-sm text-gray-300">Tier {location.tier}</p>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            {location.genres.map((genre) => (
-              <span
-                key={genre}
-                className="rounded border border-gray-700 px-2 py-1 text-xs text-gray-300"
-              >
-                {genre}
-              </span>
-            ))}
-          </div>
+          {location.sounds_and_microscenes && (
+            <div className="mt-3">
+              <h2 className="text-sm uppercase tracking-wide text-gray-400">
+                Sounds & Microscenes
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-gray-300">
+                {location.sounds_and_microscenes}
+              </p>
+            </div>
+          )}
 
           <p className="mt-4 text-sm leading-6 text-gray-300">
             {location.summary}
@@ -136,6 +147,91 @@ export default function CityPanelSupabase({
 
             <section className="space-y-3">
               <h2 className="text-sm uppercase tracking-wide text-gray-400">
+                Resident Backbone
+              </h2>
+              <p className="text-sm leading-6 text-gray-300">
+                {sceneEssentials?.resident_backbone ??
+                  "No resident backbone available."}
+              </p>
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-sm uppercase tracking-wide text-gray-400">
+                How the Scene Functions
+              </h2>
+              <p className="text-sm leading-6 text-gray-300">
+                {sceneEssentials?.how_scene_functions ??
+                  "No scene function notes available."}
+              </p>
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-sm uppercase tracking-wide text-gray-400">
+                Current Energy
+              </h2>
+              <p className="text-sm leading-6 text-gray-300">
+                {sceneEssentials?.current_energy ??
+                  "No current energy notes available."}
+              </p>
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-sm uppercase tracking-wide text-gray-400">
+                Who Matters
+              </h2>
+              <div className="space-y-3">
+                {sceneEssentials?.djs_by_generation?.length ? (
+                  sceneEssentials.djs_by_generation.map((group) => (
+                    <div key={group.generation}>
+                      <p className="text-sm font-medium text-white">
+                        {group.generation}
+                      </p>
+                      <p className="text-sm leading-6 text-gray-300">
+                        {group.names.join(", ")}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-300">
+                    No artist lineage available.
+                  </p>
+                )}
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-sm uppercase tracking-wide text-gray-400">
+                Clubs and Routes
+              </h2>
+              <div className="space-y-3">
+                {sceneEssentials?.clubs?.length ? (
+                  sceneEssentials.clubs.map((club) => (
+                    <div key={club.name}>
+                      <p className="text-sm font-medium text-white">
+                        {club.name}
+                      </p>
+                      {club.status && (
+                        <p className="text-xs uppercase tracking-wide text-gray-500">
+                          {club.status}
+                        </p>
+                      )}
+                      {club.note && (
+                        <p className="text-sm leading-6 text-gray-300">
+                          {club.note}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-300">
+                    No club routes available.
+                  </p>
+                )}
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-sm uppercase tracking-wide text-gray-400">
                 Sonic Identity
               </h2>
               <p className="text-sm leading-6 text-gray-300">
@@ -145,14 +241,72 @@ export default function CityPanelSupabase({
 
             <section className="space-y-3">
               <h2 className="text-sm uppercase tracking-wide text-gray-400">
+                Dancefloor Behaviour
+              </h2>
+              <p className="text-sm leading-6 text-gray-300">
+                {sonicIdentity?.dancefloor_behaviour ??
+                  "No dancefloor behaviour available."}
+              </p>
+              {sonicIdentity?.tempo_range && (
+                <p className="text-sm leading-6 text-gray-400">
+                  Tempo range: {sonicIdentity.tempo_range}
+                </p>
+              )}
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-sm uppercase tracking-wide text-gray-400">
+                Scene-Defining Mixes
+              </h2>
+              <div className="space-y-3">
+                {sceneDefiningMixes.length ? (
+                  sceneDefiningMixes.map((mix) => (
+                    <div key={mix.id}>
+                      <p className="text-sm font-medium text-white">
+                        {mix.title}
+                      </p>
+                      {mix.note && (
+                        <p className="text-sm leading-6 text-gray-300">
+                          {mix.note}
+                        </p>
+                      )}
+                      {mix.url && (
+                        <a
+                          href={mix.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block text-sm text-teal-300 hover:underline"
+                        >
+                          Open link
+                        </a>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-300">
+                    No scene-defining mixes available.
+                  </p>
+                )}
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-sm uppercase tracking-wide text-gray-400">
                 Seminal Tracks
               </h2>
               <ul className="space-y-3 text-sm text-gray-300">
-                {seminalTracks.length > 0 ? (
+                {seminalTracks.length ? (
                   seminalTracks.map((track) => (
                     <li key={track.id}>
-                      {track.artist} — {track.track}
+                      <span className="text-white">
+                        {track.artist} — {track.track}
+                      </span>
                       {track.year ? ` (${track.year})` : ""}
+                      {track.note && (
+                        <p className="mt-1 leading-6 text-gray-400">
+                          {track.note}
+                        </p>
+                      )}
                     </li>
                   ))
                 ) : (
@@ -165,17 +319,98 @@ export default function CityPanelSupabase({
               <h2 className="text-sm uppercase tracking-wide text-gray-400">
                 Access Points
               </h2>
-              <ul className="space-y-3 text-sm text-gray-300">
-                {accessPoints.length > 0 ? (
+              <div className="space-y-4">
+                {accessPoints.length ? (
                   accessPoints.map((item) => (
-                    <li key={item.id}>
-                      {item.name} — {item.category}
+                    <div key={item.id}>
+                      <p className="text-sm font-medium text-white">
+                        {item.name}
+                      </p>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">
+                        {item.category}
+                        {item.status ? ` · ${item.status}` : ""}
+                      </p>
+                      {item.note && (
+                        <p className="mt-1 text-sm leading-6 text-gray-300">
+                          {item.note}
+                        </p>
+                      )}
+                      {item.url && (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block text-sm text-teal-300 hover:underline"
+                        >
+                          Open link
+                        </a>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-300">
+                    No access points available.
+                  </p>
+                )}
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-sm uppercase tracking-wide text-gray-400">
+                Digging Path
+              </h2>
+              <ol className="space-y-3 text-sm text-gray-300">
+                {diggingPath.length ? (
+                  diggingPath.map((step) => (
+                    <li key={step.id}>
+                      <span className="text-white">
+                        Step {step.step_number}: {step.title}
+                      </span>
+                      <p className="mt-1 leading-6 text-gray-400">
+                        {step.instruction}
+                      </p>
                     </li>
                   ))
                 ) : (
-                  <li>No access points available.</li>
+                  <li>No digging path available.</li>
                 )}
-              </ul>
+              </ol>
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-sm uppercase tracking-wide text-gray-400">
+                Documentaries / Further Viewing
+              </h2>
+              <div className="space-y-3">
+                {documentaries.length ? (
+                  documentaries.map((doc) => (
+                    <div key={doc.id}>
+                      <p className="text-sm font-medium text-white">
+                        {doc.title}
+                      </p>
+                      {doc.note && (
+                        <p className="text-sm leading-6 text-gray-300">
+                          {doc.note}
+                        </p>
+                      )}
+                      {doc.url && (
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block text-sm text-teal-300 hover:underline"
+                        >
+                          Open link
+                        </a>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-300">
+                    No documentaries or further viewing available.
+                  </p>
+                )}
+              </div>
             </section>
           </>
         )}
