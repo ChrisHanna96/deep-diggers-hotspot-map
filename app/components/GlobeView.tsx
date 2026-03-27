@@ -101,7 +101,7 @@ export default function GlobeView({ locations, onSelectCity }: GlobeViewProps) {
   return (
     <div
       ref={containerRef}
-      className="relative flex-1 h-screen overflow-hidden border-r border-gray-800"
+      className="relative w-full h-[100vh] overflow-hidden border-r border-gray-800"
       onMouseDown={pauseRotation}
       onMouseUp={resumeRotationWithDelay}
       onMouseLeave={resumeRotationWithDelay}
