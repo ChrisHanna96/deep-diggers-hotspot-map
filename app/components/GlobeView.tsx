@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Location } from "../lib/types";
 
 const Globe = dynamic(() => import("react-globe.gl"), { ssr: false });
@@ -13,7 +13,37 @@ type GlobeViewProps = {
 
 export default function GlobeView({ locations, onSelectCity }: GlobeViewProps) {
   const globeRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [globeSize, setGlobeSize] = useState({ width: 900, height: 900 });
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (!containerRef.current) return;
+      const { clientWidth, clientHeight } = containerRef.current;
+      setGlobeSize({
+        width: clientWidth || 900,
+        height: clientHeight || 900,
+      });
+    };
+
+    updateSize();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateSize();
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    window.addEventListener("resize", updateSize);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateSize);
+    };
+  }, []);
 
   useEffect(() => {
     const startRotation = () => {
@@ -25,7 +55,6 @@ export default function GlobeView({ locations, onSelectCity }: GlobeViewProps) {
       controls.enablePan = false;
     };
 
-    // slight delay so the globe instance is definitely ready
     const initTimer = setTimeout(() => {
       startRotation();
     }, 300);
@@ -71,6 +100,7 @@ export default function GlobeView({ locations, onSelectCity }: GlobeViewProps) {
 
   return (
     <div
+      ref={containerRef}
       className="relative flex-1 h-screen overflow-hidden border-r border-gray-800"
       onMouseDown={pauseRotation}
       onMouseUp={resumeRotationWithDelay}
@@ -84,9 +114,9 @@ export default function GlobeView({ locations, onSelectCity }: GlobeViewProps) {
 
       <Globe
         ref={globeRef}
-        width={900}
-        height={900}
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
+        width={globeSize.width}
+        height={globeSize.height}
+        globeImageUrl="https://unpkg.com/three-globe/example/img/earth-dark.jpg"
         backgroundColor="#000000"
         pointsData={points}
         pointLat="lat"
