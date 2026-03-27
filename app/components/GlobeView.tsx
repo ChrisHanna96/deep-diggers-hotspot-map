@@ -108,8 +108,8 @@ export default function GlobeView({ locations, onSelectCity }: GlobeViewProps) {
       onTouchStart={pauseRotation}
       onTouchEnd={resumeRotationWithDelay}
     >
-      <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded bg-black/70 px-4 py-2 text-xs text-white">
-        Drag the globe to explore scenes
+      <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-xl border border-gray-800 bg-black/75 px-5 py-3 text-center text-sm text-white shadow-lg md:text-base">
+        <p className="font-medium">Drag the globe to explore scenes</p>
       </div>
 
       <Globe
