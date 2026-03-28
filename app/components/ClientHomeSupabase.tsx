@@ -41,7 +41,7 @@ export default function ClientHomeSupabase({
       <section className="relative h-[55vh] w-full md:h-full md:w-[58%]">
         <GlobeView
           points={points}
-          onSelectCity={(point) => {
+          onSelectCity={(point: any) => {
             const hotspot = point as Hotspot
             setSelectedLocation(hotspot.location)
           }}
