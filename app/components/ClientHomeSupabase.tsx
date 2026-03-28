@@ -30,15 +30,15 @@ export default function ClientHomeSupabase({
         city: location.city,
         lat: location.latitude,
         lng: location.longitude,
-        size: 0.45,
+        size: 1.2,
         location,
       })),
     [locations]
   )
 
   return (
-    <main className="h-screen w-screen bg-black text-white md:flex">
-      <section className="relative h-[55vh] w-full md:h-full md:w-[58%]">
+    <main className="flex h-screen w-screen flex-col bg-black text-white md:flex-row">
+      <section className="relative z-0 h-[55vh] w-full overflow-hidden md:h-full md:w-[58%]">
         <GlobeView
           points={points}
           onSelectCity={(point: any) => {
@@ -48,7 +48,7 @@ export default function ClientHomeSupabase({
         />
       </section>
 
-      <section className="h-[45vh] w-full border-t border-gray-800 md:h-full md:w-[42%] md:border-l md:border-t-0">
+      <section className="relative z-20 h-[45vh] w-full bg-[#12161B] md:h-full md:w-[42%] md:border-l md:border-gray-800">
         <CityPanelSupabase location={selectedLocation} />
       </section>
     </main>

@@ -64,7 +64,12 @@ export default function GlobeView({ points, onSelectCity }: any) {
       }, 3000)
     }
 
-    const globeEl = globeRef.current.renderer?.()?.domElement
+    const globeEl =
+      globeRef.current.renderer &&
+      typeof globeRef.current.renderer === 'function'
+        ? globeRef.current.renderer().domElement
+        : null
+
     if (!globeEl) return
 
     globeEl.addEventListener('pointerdown', pauseAndResume)

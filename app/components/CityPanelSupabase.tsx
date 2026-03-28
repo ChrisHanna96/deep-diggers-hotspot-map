@@ -172,7 +172,7 @@ export default function CityPanelSupabase({
 
         <button
           onClick={() => setIsExpanded((prev) => !prev)}
-          className="w-full rounded-xl border border-gray-700 bg-[#171C22] px-4 py-3 text-left text-sm font-medium transition hover:bg-[#1D232B]"
+          className="w-full rounded-xl border border-teal-700/40 bg-teal-900/20 px-4 py-3 text-left text-sm font-medium text-teal-200 transition hover:bg-teal-900/30"
         >
           {isExpanded ? "Hide Scene" : "Explore Scene"}
         </button>
