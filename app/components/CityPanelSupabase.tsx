@@ -126,7 +126,7 @@ export default function CityPanelSupabase({
 
   return (
     <aside className="h-full w-full overflow-y-auto bg-[#0F1720] p-5 text-white md:p-6">
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div>
           <h1 className="text-xl font-semibold tracking-tight leading-tight text-white">
             {location.city}
