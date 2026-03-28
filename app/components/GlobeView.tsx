@@ -1,7 +1,7 @@
 'use client'
 
 import Globe from 'react-globe.gl'
-import { useRef, useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 
 type Hotspot = {
   id: string
@@ -18,9 +18,10 @@ type GlobeViewProps = {
 
 export default function GlobeView({ points, onSelectCity }: GlobeViewProps) {
   const globeRef = useRef<any>(null)
-  const [isInteracting, setIsInteracting] = useState(false)
 
-  // Ensure every point has a visible/tappable size
+  const [hoveredPoint, setHoveredPoint] = useState<Hotspot | null>(null)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+
   const safePoints = useMemo(
     () =>
       points.map((p) => ({
@@ -30,44 +31,58 @@ export default function GlobeView({ points, onSelectCity }: GlobeViewProps) {
     [points]
   )
 
+  const handleSelect = (point: Hotspot | null) => {
+    if (!point) return
+    onSelectCity(point)
+  }
+
   return (
     <div
-      className="relative w-full h-full"
+      className="relative h-full w-full"
       style={{ touchAction: 'none' }}
+      onTouchStart={(e) => {
+        const touch = e.touches[0]
+        if (!touch) return
+        touchStartRef.current = { x: touch.clientX, y: touch.clientY }
+      }}
+      onTouchEnd={(e) => {
+        const start = touchStartRef.current
+        const touch = e.changedTouches[0]
+
+        if (!start || !touch) return
+
+        const dx = Math.abs(touch.clientX - start.x)
+        const dy = Math.abs(touch.clientY - start.y)
+
+        const TAP_THRESHOLD = 12
+
+        if (dx <= TAP_THRESHOLD && dy <= TAP_THRESHOLD && hoveredPoint) {
+          handleSelect(hoveredPoint)
+        }
+
+        touchStartRef.current = null
+      }}
     >
-      {/* NON-INTERACTIVE OVERLAY (SAFE) */}
       <div className="pointer-events-none absolute inset-0 z-10" />
 
       <Globe
         ref={globeRef}
-
-        // sizing
         width={undefined}
         height={undefined}
-
-        // visuals
         globeImageUrl="/earth-night.jpg"
         backgroundColor="rgba(0,0,0,0)"
-
-        // DATA
         pointsData={safePoints}
         pointLat="lat"
         pointLng="lng"
         pointAltitude={0.02}
         pointRadius="size"
-
-        // CRITICAL: must be FALSE or clicks/taps will NOT work
         pointsMerge={false}
-
-        // INTERACTION
-        onPointClick={(point) => {
-          onSelectCity(point as Hotspot)
+        onPointHover={(point) => {
+          setHoveredPoint((point as Hotspot) || null)
         }}
-
-        // OPTIONAL: interaction state tracking (safe)
-        onZoom={() => setIsInteracting(true)}
-        onRotate={() => setIsInteracting(true)}
-        onRotateEnd={() => setIsInteracting(false)}
+        onPointClick={(point) => {
+          handleSelect(point as Hotspot)
+        }}
       />
     </div>
   )
