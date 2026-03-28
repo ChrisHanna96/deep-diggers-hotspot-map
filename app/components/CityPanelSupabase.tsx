@@ -102,7 +102,7 @@ export default function CityPanelSupabase({
 
   if (!location) {
     return (
-      <aside className="h-full w-full overflow-y-auto bg-[#12161B] p-5 text-white md:p-6">
+      <aside className="h-full w-full overflow-y-auto bg-[#0F1720] p-5 text-white md:p-6">
         <div className="flex h-full flex-col justify-center">
           <div className="mx-auto w-full max-w-md rounded-2xl border border-gray-800 bg-[#161B21] p-6 shadow-lg">
             <p className="text-sm font-medium uppercase tracking-[0.16em] text-teal-300">
@@ -111,12 +111,12 @@ export default function CityPanelSupabase({
             <h2 className="mt-3 text-2xl font-semibold leading-tight text-white">
               Explore the map
             </h2>
-            <p className="mt-3 text-base leading-7 text-gray-300">
+            <p className="mt-3 text-sm leading-relaxed text-gray-300">
               Drag the globe to explore scenes.
             </p>
-            <p className="mt-2 text-sm leading-6 text-gray-400">
+            <p className="mt-2 text-sm leading-relaxed text-gray-400">
               Select a city to open scene details, key figures, mixes and
-              digging routes.
+              digging routes. You can also zoom in to reach tighter clusters.
             </p>
           </div>
         </div>
@@ -125,21 +125,16 @@ export default function CityPanelSupabase({
   }
 
   return (
-    <aside className="h-full w-full overflow-y-auto bg-[#12161B] p-5 text-white md:p-6">
+    <aside className="h-full w-full overflow-y-auto bg-[#0F1720] p-5 text-white md:p-6">
       <div className="space-y-6">
-        <div className="rounded-2xl border border-gray-800 bg-[#161B21] p-4">
-          <p className="text-sm font-medium text-teal-300">
-            Drag the globe to explore scenes
-          </p>
-          <p className="mt-1 text-xs leading-5 text-gray-400">
-            Select cities to open scene details, key figures, mixes and digging
-            routes.
-          </p>
-        </div>
-
         <div>
+          <h1 className="text-xl font-semibold tracking-tight leading-tight text-white">
+            {location.city}
+          </h1>
+          <p className="mt-1 text-sm text-gray-400">{location.country}</p>
+
           {microSceneLabels.length > 0 && (
-            <div className="mb-3 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               {microSceneLabels.map((label) => (
                 <span
                   key={label}
@@ -151,21 +146,18 @@ export default function CityPanelSupabase({
             </div>
           )}
 
-          <h1 className="text-3xl font-semibold leading-tight">{location.city}</h1>
-          <p className="mt-1 text-sm text-gray-400">{location.country}</p>
-
           {location.sounds_and_microscenes && (
             <div className="mt-4">
               <h2 className="text-sm uppercase tracking-wide text-gray-400">
                 Sounds & Microscenes
               </h2>
-              <p className="mt-2 text-sm leading-6 text-gray-300">
+              <p className="mt-2 text-sm leading-relaxed text-gray-300">
                 {location.sounds_and_microscenes}
               </p>
             </div>
           )}
 
-          <p className="mt-4 text-sm leading-7 text-gray-300">
+          <p className="mt-4 text-sm leading-relaxed text-gray-300">
             {location.summary}
           </p>
         </div>
@@ -188,7 +180,7 @@ export default function CityPanelSupabase({
                 <h2 className="text-sm uppercase tracking-wide text-gray-400">
                   Scene Essentials
                 </h2>
-                <p className="text-sm leading-7 text-gray-300">
+                <p className="text-sm leading-relaxed text-gray-300">
                   {sceneEssentials.notes}
                 </p>
               </section>
@@ -199,7 +191,7 @@ export default function CityPanelSupabase({
                 <h2 className="text-sm uppercase tracking-wide text-gray-400">
                   Resident Backbone
                 </h2>
-                <p className="text-sm leading-7 text-gray-300">
+                <p className="text-sm leading-relaxed text-gray-300">
                   {sceneEssentials.resident_backbone}
                 </p>
               </section>
@@ -210,7 +202,7 @@ export default function CityPanelSupabase({
                 <h2 className="text-sm uppercase tracking-wide text-gray-400">
                   How the Scene Functions
                 </h2>
-                <p className="text-sm leading-7 text-gray-300">
+                <p className="text-sm leading-relaxed text-gray-300">
                   {sceneEssentials.how_scene_functions}
                 </p>
               </section>
@@ -221,7 +213,7 @@ export default function CityPanelSupabase({
                 <h2 className="text-sm uppercase tracking-wide text-gray-400">
                   Current Energy
                 </h2>
-                <p className="text-sm leading-7 text-gray-300">
+                <p className="text-sm leading-relaxed text-gray-300">
                   {sceneEssentials.current_energy}
                 </p>
               </section>
@@ -238,7 +230,7 @@ export default function CityPanelSupabase({
                       <p className="text-sm font-medium text-white">
                         {group.generation}
                       </p>
-                      <p className="mt-1 text-sm leading-7 text-gray-300">
+                      <p className="mt-1 text-sm leading-relaxed text-gray-300">
                         {group.names.join(", ")}
                       </p>
                     </div>
@@ -266,7 +258,7 @@ export default function CityPanelSupabase({
                         )}
                       </div>
                       {club.note && (
-                        <p className="mt-2 text-sm leading-7 text-gray-300">
+                        <p className="mt-2 text-sm leading-relaxed text-gray-300">
                           {club.note}
                         </p>
                       )}
@@ -281,24 +273,25 @@ export default function CityPanelSupabase({
                 <h2 className="text-sm uppercase tracking-wide text-gray-400">
                   Sonic Identity
                 </h2>
-                <p className="text-sm leading-7 text-gray-300">
+                <p className="text-sm leading-relaxed text-gray-300">
                   {sonicIdentity.description}
                 </p>
               </section>
             )}
 
-            {(sonicIdentity?.dancefloor_behaviour || sonicIdentity?.tempo_range) && (
+            {(sonicIdentity?.dancefloor_behaviour ||
+              sonicIdentity?.tempo_range) && (
               <section className="space-y-3">
                 <h2 className="text-sm uppercase tracking-wide text-gray-400">
                   Dancefloor Behaviour
                 </h2>
                 {sonicIdentity?.dancefloor_behaviour && (
-                  <p className="text-sm leading-7 text-gray-300">
+                  <p className="text-sm leading-relaxed text-gray-300">
                     {sonicIdentity.dancefloor_behaviour}
                   </p>
                 )}
                 {sonicIdentity?.tempo_range && (
-                  <p className="text-sm leading-6 text-gray-400">
+                  <p className="text-sm leading-relaxed text-gray-400">
                     Tempo range: {sonicIdentity.tempo_range}
                   </p>
                 )}
@@ -317,7 +310,7 @@ export default function CityPanelSupabase({
                         {mix.title}
                       </p>
                       {mix.note && (
-                        <p className="mt-2 text-sm leading-7 text-gray-300">
+                        <p className="mt-2 text-sm leading-relaxed text-gray-300">
                           {mix.note}
                         </p>
                       )}
@@ -350,7 +343,7 @@ export default function CityPanelSupabase({
                       </span>
                       {track.year ? ` (${track.year})` : ""}
                       {track.note && (
-                        <p className="mt-2 leading-7 text-gray-400">
+                        <p className="mt-2 leading-relaxed text-gray-400">
                           {track.note}
                         </p>
                       )}
@@ -382,7 +375,7 @@ export default function CityPanelSupabase({
                         )}
                       </div>
                       {item.note && (
-                        <p className="mt-2 text-sm leading-7 text-gray-300">
+                        <p className="mt-2 text-sm leading-relaxed text-gray-300">
                           {item.note}
                         </p>
                       )}
@@ -413,7 +406,7 @@ export default function CityPanelSupabase({
                       <span className="text-white">
                         Step {step.step_number}: {step.title}
                       </span>
-                      <p className="mt-2 leading-7 text-gray-400">
+                      <p className="mt-2 leading-relaxed text-gray-400">
                         {step.instruction}
                       </p>
                     </li>
@@ -434,7 +427,7 @@ export default function CityPanelSupabase({
                         {doc.title}
                       </p>
                       {doc.note && (
-                        <p className="mt-2 text-sm leading-7 text-gray-300">
+                        <p className="mt-2 text-sm leading-relaxed text-gray-300">
                           {doc.note}
                         </p>
                       )}

@@ -59,7 +59,6 @@ export default function GlobeView({ points, onSelectCity }: any) {
   const disableAutoRotate = () => {
     const controls = globeRef.current?.controls?.()
     if (!controls) return
-
     controls.autoRotate = false
   }
 
@@ -77,7 +76,6 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
   const resetView = () => {
     if (!globeRef.current) return
-
     globeRef.current.pointOfView(START_POV, 800)
     pauseAndResume()
   }
@@ -106,25 +104,11 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
       updateFrameRef.current = requestAnimationFrame(tick)
 
-      const handlePointerDown = () => {
-        disableAutoRotate()
-      }
-
-      const handlePointerUp = () => {
-        pauseAndResume()
-      }
-
-      const handleTouchStart = () => {
-        disableAutoRotate()
-      }
-
-      const handleTouchEnd = () => {
-        pauseAndResume()
-      }
-
-      const handleWheel = () => {
-        pauseAndResume()
-      }
+      const handlePointerDown = () => disableAutoRotate()
+      const handlePointerUp = () => pauseAndResume()
+      const handleTouchStart = () => disableAutoRotate()
+      const handleTouchEnd = () => pauseAndResume()
+      const handleWheel = () => pauseAndResume()
 
       canvas.addEventListener('pointerdown', handlePointerDown, { passive: true })
       canvas.addEventListener('pointerup', handlePointerUp, { passive: true })
@@ -145,18 +129,9 @@ export default function GlobeView({ points, onSelectCity }: any) {
     startWhenReady()
 
     return () => {
-      if (resumeTimerRef.current) {
-        clearTimeout(resumeTimerRef.current)
-      }
-
-      if (startPollRef.current) {
-        clearInterval(startPollRef.current)
-      }
-
-      if (updateFrameRef.current) {
-        cancelAnimationFrame(updateFrameRef.current)
-      }
-
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
+      if (startPollRef.current) clearInterval(startPollRef.current)
+      if (updateFrameRef.current) cancelAnimationFrame(updateFrameRef.current)
       globeRef.current?.__cleanupAutorotate?.()
     }
   }, [dimensions.width, dimensions.height])
@@ -170,7 +145,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
         onClick={resetView}
         className="absolute right-4 top-4 z-20 rounded-lg border border-teal-700/30 bg-teal-900/10 px-3 py-1.5 text-xs font-medium text-teal-200 transition hover:bg-teal-900/20"
       >
-        Reset
+        Reset View
       </button>
 
       <Globe
