@@ -13,6 +13,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
   const rotationFrameRef = useRef<number | null>(null)
   const pauseUntilRef = useRef<number>(0)
   const povRef = useRef({ ...START_POV })
+  const startupIgnoreUntilRef = useRef<number>(0)
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
@@ -47,6 +48,8 @@ export default function GlobeView({ points, onSelectCity }: any) {
   }, [points])
 
   const pauseAndResume = () => {
+    if (Date.now() < startupIgnoreUntilRef.current) return
+
     pauseUntilRef.current = Date.now() + 3000
 
     if (resumeTimerRef.current) {
@@ -72,6 +75,8 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
     globeRef.current.pointOfView(START_POV, 0)
     povRef.current = { ...START_POV }
+    pauseUntilRef.current = 0
+    startupIgnoreUntilRef.current = Date.now() + 1500
 
     const canvas = globeRef.current?.renderer?.()?.domElement
 
