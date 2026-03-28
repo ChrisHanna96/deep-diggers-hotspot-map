@@ -1,12 +1,27 @@
-cat > app/components/GlobeView.tsx <<'EOF'
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 
 const Globe = dynamic(() => import('react-globe.gl'), { ssr: false })
 
 export default function GlobeView({ points, onSelectCity }: any) {
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+
+  useEffect(() => {
+    function updateSize() {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+
+    updateSize()
+    window.addEventListener('resize', updateSize)
+
+    return () => window.removeEventListener('resize', updateSize)
+  }, [])
+
   const safePoints = useMemo(
     () =>
       points.map((p: any) => ({
@@ -16,11 +31,13 @@ export default function GlobeView({ points, onSelectCity }: any) {
     [points]
   )
 
+  if (dimensions.width === 0) return null
+
   return (
-    <div className="relative h-full w-full" style={{ touchAction: 'none' }}>
+    <div className="h-full w-full">
       <Globe
-        width={undefined}
-        height={undefined}
+        width={dimensions.width}
+        height={dimensions.height}
         globeImageUrl="/earth-night.jpg"
         backgroundColor="rgba(0,0,0,0)"
         pointsData={safePoints}
@@ -34,4 +51,3 @@ export default function GlobeView({ points, onSelectCity }: any) {
     </div>
   )
 }
-EOF
