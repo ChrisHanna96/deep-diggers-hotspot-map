@@ -37,8 +37,8 @@ export default function ClientHomeSupabase({
   )
 
   return (
-    <main className="flex h-screen w-screen flex-col bg-black text-white md:flex-row">
-      <section className="relative z-0 h-[55vh] w-full overflow-hidden md:h-full md:w-[58%]">
+    <main className="flex h-[100svh] w-screen flex-col bg-black text-white md:h-screen md:flex-row">
+      <section className="relative z-0 h-[55svh] w-full overflow-hidden md:h-full md:w-[58%]">
         <GlobeView
           points={points}
           onSelectCity={(point: any) => {
@@ -48,7 +48,7 @@ export default function ClientHomeSupabase({
         />
       </section>
 
-      <section className="relative z-20 h-[45vh] w-full bg-[#12161B] md:h-full md:w-[42%] md:border-l md:border-gray-800">
+      <section className="relative z-20 h-[45svh] w-full bg-[#12161B] md:h-full md:w-[42%] md:border-l md:border-gray-800">
         <CityPanelSupabase location={selectedLocation} />
       </section>
     </main>
