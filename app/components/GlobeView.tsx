@@ -8,7 +8,6 @@ const Globe = dynamic(() => import('react-globe.gl'), { ssr: false })
 export default function GlobeView({ points, onSelectCity }: any) {
   const globeRef = useRef<any>(null)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const controlsBoundRef = useRef(false)
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
@@ -81,52 +80,9 @@ export default function GlobeView({ points, onSelectCity }: any) {
   }
 
   useEffect(() => {
-    if (!globeRef.current || dimensions.width === 0 || dimensions.height === 0) {
-      return
-    }
-
-    const bindControls = () => {
-      const controls = globeRef.current?.controls?.()
-      const renderer = globeRef.current?.renderer?.()
-      const canvas = renderer?.domElement
-
-      if (!controls || !canvas) return false
-
-      enableAutoRotate()
-
-      if (!controlsBoundRef.current) {
-        canvas.addEventListener('pointerdown', pauseAndResume)
-        canvas.addEventListener('wheel', pauseAndResume, { passive: true })
-        canvas.addEventListener('touchstart', pauseAndResume, { passive: true })
-        controlsBoundRef.current = true
-      }
-
-      return true
-    }
-
-    const immediate = bindControls()
-    if (immediate) return
-
-    const timer = setTimeout(() => {
-      bindControls()
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [dimensions.width, dimensions.height])
-
-  useEffect(() => {
     return () => {
       if (resumeTimerRef.current) {
         clearTimeout(resumeTimerRef.current)
-      }
-
-      const renderer = globeRef.current?.renderer?.()
-      const canvas = renderer?.domElement
-
-      if (canvas && controlsBoundRef.current) {
-        canvas.removeEventListener('pointerdown', pauseAndResume)
-        canvas.removeEventListener('wheel', pauseAndResume)
-        canvas.removeEventListener('touchstart', pauseAndResume)
       }
     }
   }, [])
@@ -158,7 +114,19 @@ export default function GlobeView({ points, onSelectCity }: any) {
         pointRadius="size"
         pointColor={() => '#5eead4'}
         pointsMerge={false}
-        onZoom={pauseAndResume}
+        onGlobeReady={() => {
+          enableAutoRotate()
+
+          if (globeRef.current?.pointOfView) {
+            globeRef.current.pointOfView(
+              { lat: 20, lng: 0, altitude: 2.2 },
+              0
+            )
+          }
+        }}
+        onZoom={() => {
+          pauseAndResume()
+        }}
         onPointClick={(point: any) => {
           pauseAndResume()
           onSelectCity(point)
