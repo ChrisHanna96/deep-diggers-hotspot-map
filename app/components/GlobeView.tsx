@@ -6,29 +6,48 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 const Globe = dynamic(() => import('react-globe.gl'), { ssr: false })
 
 export default function GlobeView({ points, onSelectCity }: any) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
   const globeRef = useRef<any>(null)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
   useEffect(() => {
-    function updateSize() {
+    const updateSize = () => {
+      const rect = wrapperRef.current?.getBoundingClientRect()
+
+      if (rect && rect.width > 0 && rect.height > 0) {
+        setDimensions({
+          width: Math.floor(rect.width),
+          height: Math.floor(rect.height),
+        })
+        return
+      }
+
       const isDesktop = window.innerWidth >= 768
 
       setDimensions({
-        width: isDesktop
-          ? Math.floor(window.innerWidth * 0.58)
-          : window.innerWidth,
-        height: isDesktop
-          ? window.innerHeight
-          : Math.floor(window.innerHeight * 0.55),
+        width: isDesktop ? Math.floor(window.innerWidth * 0.58) : window.innerWidth,
+        height: isDesktop ? window.innerHeight : Math.floor(window.innerHeight * 0.55),
       })
     }
 
     updateSize()
+
+    const observer = new ResizeObserver(() => {
+      updateSize()
+    })
+
+    if (wrapperRef.current) {
+      observer.observe(wrapperRef.current)
+    }
+
     window.addEventListener('resize', updateSize)
 
-    return () => window.removeEventListener('resize', updateSize)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', updateSize)
+    }
   }, [])
 
   const safePoints = useMemo(() => {
@@ -37,19 +56,21 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
     return points.map((p: any) => ({
       ...p,
-      size: isMobile ? 2.5 : (p.size ?? 1.2),
+      size: isMobile ? 3 : (p.size ?? 1.2),
     }))
   }, [points])
 
   const enableAutoRotate = () => {
     const controls = globeRef.current?.controls?.()
-    if (!controls) return
+    if (!controls) return false
 
     controls.autoRotate = true
     controls.autoRotateSpeed = 0.8
     controls.enableDamping = true
     controls.dampingFactor = 0.08
     controls.update?.()
+
+    return true
   }
 
   const pauseAndResume = () => {
@@ -83,45 +104,50 @@ export default function GlobeView({ points, onSelectCity }: any) {
     if (dimensions.width === 0 || dimensions.height === 0) return
     if (!globeRef.current) return
 
-    const setupTimer = setTimeout(() => {
-      enableAutoRotate()
+    let cancelled = false
+    let attempts = 0
 
-      const controls = globeRef.current?.controls?.()
-      controls?.update?.()
+    const tryStartRotation = () => {
+      if (cancelled) return
 
-      const canvas = globeRef.current?.renderer?.()?.domElement
-      if (!canvas) return
+      const started = enableAutoRotate()
+      attempts += 1
 
-      const handleInteractionEnd = () => {
-        pauseAndResume()
+      if (!started && attempts < 20) {
+        setTimeout(tryStartRotation, 150)
       }
+    }
 
-      canvas.addEventListener('pointerup', handleInteractionEnd)
-      canvas.addEventListener('touchend', handleInteractionEnd, { passive: true })
-      canvas.addEventListener('wheel', handleInteractionEnd, { passive: true })
+    tryStartRotation()
 
-      ;(globeRef.current as any).__cleanupInteractionHandlers = () => {
-        canvas.removeEventListener('pointerup', handleInteractionEnd)
-        canvas.removeEventListener('touchend', handleInteractionEnd)
-        canvas.removeEventListener('wheel', handleInteractionEnd)
-      }
-    }, 400)
+    const canvas = globeRef.current?.renderer?.()?.domElement
+    if (!canvas) return
+
+    const handleInteractionEnd = () => {
+      pauseAndResume()
+    }
+
+    canvas.addEventListener('pointerup', handleInteractionEnd)
+    canvas.addEventListener('touchend', handleInteractionEnd, { passive: true })
+    canvas.addEventListener('wheel', handleInteractionEnd, { passive: true })
 
     return () => {
-      clearTimeout(setupTimer)
+      cancelled = true
 
       if (resumeTimerRef.current) {
         clearTimeout(resumeTimerRef.current)
       }
 
-      globeRef.current?.__cleanupInteractionHandlers?.()
+      canvas.removeEventListener('pointerup', handleInteractionEnd)
+      canvas.removeEventListener('touchend', handleInteractionEnd)
+      canvas.removeEventListener('wheel', handleInteractionEnd)
     }
   }, [dimensions.width, dimensions.height])
 
   if (dimensions.width === 0 || dimensions.height === 0) return null
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div ref={wrapperRef} className="relative h-full w-full overflow-hidden">
       <button
         type="button"
         onClick={resetView}
