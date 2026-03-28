@@ -31,14 +31,15 @@ export default function GlobeView({ points, onSelectCity }: any) {
     return () => window.removeEventListener('resize', updateSize)
   }, [])
 
-  const safePoints = useMemo(
-    () =>
-      points.map((p: any) => ({
-        ...p,
-        size: p.size ?? 1.2,
-      })),
-    [points]
-  )
+  const safePoints = useMemo(() => {
+    const isMobile =
+      typeof window !== 'undefined' && window.innerWidth < 768
+
+    return points.map((p: any) => ({
+      ...p,
+      size: isMobile ? 2.5 : (p.size ?? 1.2),
+    }))
+  }, [points])
 
   const enableAutoRotate = () => {
     const controls = globeRef.current?.controls?.()
@@ -85,6 +86,9 @@ export default function GlobeView({ points, onSelectCity }: any) {
     const setupTimer = setTimeout(() => {
       enableAutoRotate()
 
+      const controls = globeRef.current?.controls?.()
+      controls?.update?.()
+
       const canvas = globeRef.current?.renderer?.()?.domElement
       if (!canvas) return
 
@@ -101,7 +105,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
         canvas.removeEventListener('touchend', handleInteractionEnd)
         canvas.removeEventListener('wheel', handleInteractionEnd)
       }
-    }, 250)
+    }, 400)
 
     return () => {
       clearTimeout(setupTimer)
