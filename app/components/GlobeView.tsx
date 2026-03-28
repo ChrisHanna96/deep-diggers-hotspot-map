@@ -6,47 +6,39 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 const Globe = dynamic(() => import('react-globe.gl'), { ssr: false })
 
 export default function GlobeView({ points, onSelectCity }: any) {
-  const wrapperRef = useRef<HTMLDivElement | null>(null)
   const globeRef = useRef<any>(null)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
-  const safePoints = useMemo(
-    () =>
-      points.map((p: any) => ({
-        ...p,
-        size: 0.8,
-      })),
-    [points]
-  )
-
   useEffect(() => {
-    if (!wrapperRef.current) return
+    function updateSize() {
+      const isDesktop = window.innerWidth >= 768
 
-    const updateSize = () => {
-      if (!wrapperRef.current) return
-      const rect = wrapperRef.current.getBoundingClientRect()
       setDimensions({
-        width: Math.max(0, Math.floor(rect.width)),
-        height: Math.max(0, Math.floor(rect.height)),
+        width: isDesktop
+          ? Math.floor(window.innerWidth * 0.58)
+          : window.innerWidth,
+        height: isDesktop
+          ? window.innerHeight
+          : Math.floor(window.innerHeight * 0.55),
       })
     }
 
     updateSize()
-
-    const observer = new ResizeObserver(() => {
-      updateSize()
-    })
-
-    observer.observe(wrapperRef.current)
     window.addEventListener('resize', updateSize)
 
-    return () => {
-      observer.disconnect()
-      window.removeEventListener('resize', updateSize)
-    }
+    return () => window.removeEventListener('resize', updateSize)
   }, [])
+
+  const safePoints = useMemo(
+    () =>
+      points.map((p: any) => ({
+        ...p,
+        size: p.size ?? 1.2,
+      })),
+    [points]
+  )
 
   useEffect(() => {
     if (!globeRef.current) return
@@ -72,25 +64,25 @@ export default function GlobeView({ points, onSelectCity }: any) {
       }, 3000)
     }
 
-    const el = wrapperRef.current
-    if (!el) return
+    const globeEl = globeRef.current.renderer?.()?.domElement
+    if (!globeEl) return
 
-    el.addEventListener('pointerdown', pauseAndResume)
-    el.addEventListener('touchstart', pauseAndResume, { passive: true })
+    globeEl.addEventListener('pointerdown', pauseAndResume)
+    globeEl.addEventListener('touchstart', pauseAndResume, { passive: true })
 
     return () => {
       if (resumeTimerRef.current) {
         clearTimeout(resumeTimerRef.current)
       }
-      el.removeEventListener('pointerdown', pauseAndResume)
-      el.removeEventListener('touchstart', pauseAndResume)
+      globeEl.removeEventListener('pointerdown', pauseAndResume)
+      globeEl.removeEventListener('touchstart', pauseAndResume)
     }
   }, [dimensions.width, dimensions.height])
 
   if (dimensions.width === 0 || dimensions.height === 0) return null
 
   return (
-    <div ref={wrapperRef} className="h-full w-full overflow-hidden">
+    <div className="h-full w-full overflow-hidden">
       <Globe
         ref={globeRef}
         width={dimensions.width}
