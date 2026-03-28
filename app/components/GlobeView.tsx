@@ -5,27 +5,19 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 const Globe = dynamic(() => import('react-globe.gl'), { ssr: false })
 
+const START_POV = { lat: 20, lng: 0, altitude: 2.2 }
+
 export default function GlobeView({ points, onSelectCity }: any) {
-  const wrapperRef = useRef<HTMLDivElement | null>(null)
   const globeRef = useRef<any>(null)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const animationRef = useRef<number | null>(null)
+  const rotationFrameRef = useRef<number | null>(null)
+  const pauseUntilRef = useRef<number>(0)
+  const povRef = useRef({ ...START_POV })
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
-  const [globeReady, setGlobeReady] = useState(false)
 
   useEffect(() => {
     function updateSize() {
-      const rect = wrapperRef.current?.getBoundingClientRect()
-
-      if (rect && rect.width > 0 && rect.height > 0) {
-        setDimensions({
-          width: Math.floor(rect.width),
-          height: Math.floor(rect.height),
-        })
-        return
-      }
-
       const isDesktop = window.innerWidth >= 768
 
       setDimensions({
@@ -50,105 +42,69 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
     return points.map((p: any) => ({
       ...p,
-      size: isMobile ? 3 : (p.size ?? 1.2),
+      size: isMobile ? 2.8 : (p.size ?? 1.2),
     }))
   }, [points])
 
-  const enableAutoRotate = () => {
-    const controls = globeRef.current?.controls?.()
-    if (!controls) return false
-
-    controls.autoRotate = true
-    controls.autoRotateSpeed = 0.8
-    controls.enableDamping = true
-    controls.dampingFactor = 0.08
-    return true
-  }
-
-  const disableAutoRotate = () => {
-    const controls = globeRef.current?.controls?.()
-    if (!controls) return
-
-    controls.autoRotate = false
-  }
-
   const pauseAndResume = () => {
-    disableAutoRotate()
+    pauseUntilRef.current = Date.now() + 3000
 
     if (resumeTimerRef.current) {
       clearTimeout(resumeTimerRef.current)
     }
 
     resumeTimerRef.current = setTimeout(() => {
-      enableAutoRotate()
+      pauseUntilRef.current = 0
     }, 3000)
   }
 
   const resetView = () => {
     if (!globeRef.current) return
 
-    globeRef.current.pointOfView(
-      { lat: 20, lng: 0, altitude: 2.2 },
-      800
-    )
-
+    povRef.current = { ...START_POV }
+    globeRef.current.pointOfView(START_POV, 800)
     pauseAndResume()
   }
 
   useEffect(() => {
-    if (!globeReady) return
     if (dimensions.width === 0 || dimensions.height === 0) return
     if (!globeRef.current) return
 
-    const startTimer = setTimeout(() => {
-      const controls = globeRef.current?.controls?.()
-      const canvas = globeRef.current?.renderer?.()?.domElement
+    globeRef.current.pointOfView(START_POV, 0)
+    povRef.current = { ...START_POV }
 
-      if (!controls || !canvas) return
+    const rotate = () => {
+      const now = Date.now()
 
-      enableAutoRotate()
+      if (now >= pauseUntilRef.current && globeRef.current?.pointOfView) {
+        povRef.current = {
+          ...povRef.current,
+          lng: povRef.current.lng + 0.08,
+        }
 
-      const animate = () => {
-        controls.update()
-        animationRef.current = requestAnimationFrame(animate)
+        globeRef.current.pointOfView(povRef.current, 0)
       }
 
-      animationRef.current = requestAnimationFrame(animate)
+      rotationFrameRef.current = requestAnimationFrame(rotate)
+    }
 
-      const handleInteractionEnd = () => {
-        pauseAndResume()
-      }
-
-      canvas.addEventListener('pointerup', handleInteractionEnd)
-      canvas.addEventListener('touchend', handleInteractionEnd, { passive: true })
-      canvas.addEventListener('wheel', handleInteractionEnd, { passive: true })
-
-      ;(globeRef.current as any).__cleanupInteractionHandlers = () => {
-        canvas.removeEventListener('pointerup', handleInteractionEnd)
-        canvas.removeEventListener('touchend', handleInteractionEnd)
-        canvas.removeEventListener('wheel', handleInteractionEnd)
-      }
-    }, 150)
+    rotationFrameRef.current = requestAnimationFrame(rotate)
 
     return () => {
-      clearTimeout(startTimer)
-
       if (resumeTimerRef.current) {
         clearTimeout(resumeTimerRef.current)
       }
 
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
+      if (rotationFrameRef.current) {
+        cancelAnimationFrame(rotationFrameRef.current)
       }
-
-      globeRef.current?.__cleanupInteractionHandlers?.()
     }
-  }, [globeReady, dimensions.width, dimensions.height])
+  }, [dimensions.width, dimensions.height])
 
   if (dimensions.width === 0 || dimensions.height === 0) return null
 
   return (
-    <div ref={wrapperRef} className="relative h-full w-full overflow-hidden">
+    <div className="relative h-full w-full overflow-hidden">
       <button
         type="button"
         onClick={resetView}
@@ -172,8 +128,11 @@ export default function GlobeView({ points, onSelectCity }: any) {
         pointRadius="size"
         pointColor={() => '#5eead4'}
         pointsMerge={false}
-        onGlobeReady={() => {
-          setGlobeReady(true)
+        onZoom={(pov: any) => {
+          if (pov) {
+            povRef.current = pov
+          }
+          pauseAndResume()
         }}
         onPointClick={(point: any) => {
           pauseAndResume()
