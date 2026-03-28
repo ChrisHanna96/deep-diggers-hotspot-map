@@ -38,7 +38,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
       <Globe
         width={dimensions.width}
         height={dimensions.height}
-        globeImageUrl="/earth-night.jpg"
+        globeImageUrl="/globe.svg"
         backgroundColor="rgba(0,0,0,0)"
         pointsData={safePoints}
         pointLat="lat"
