@@ -11,9 +11,11 @@ export default function GlobeView({ points, onSelectCity }: any) {
   const globeRef = useRef<any>(null)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const rotationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const listenerAttachTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pauseUntilRef = useRef<number>(0)
   const povRef = useRef({ ...START_POV })
+
+  const pointerActiveRef = useRef(false)
+  const touchActiveRef = useRef(false)
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
@@ -74,20 +76,44 @@ export default function GlobeView({ points, onSelectCity }: any) {
     globeRef.current.pointOfView(START_POV, 0)
     povRef.current = { ...START_POV }
     pauseUntilRef.current = 0
+    pointerActiveRef.current = false
+    touchActiveRef.current = false
 
     const canvas = globeRef.current?.renderer?.()?.domElement
 
-    const handleInteractionEnd = () => {
+    const handlePointerDown = () => {
+      pointerActiveRef.current = true
+    }
+
+    const handlePointerUp = () => {
+      if (pointerActiveRef.current) {
+        pointerActiveRef.current = false
+        pauseAndResume()
+      }
+    }
+
+    const handleTouchStart = () => {
+      touchActiveRef.current = true
+    }
+
+    const handleTouchEnd = () => {
+      if (touchActiveRef.current) {
+        touchActiveRef.current = false
+        pauseAndResume()
+      }
+    }
+
+    const handleWheel = () => {
       pauseAndResume()
     }
 
-    listenerAttachTimerRef.current = setTimeout(() => {
-      if (!canvas) return
-
-      canvas.addEventListener('pointerup', handleInteractionEnd)
-      canvas.addEventListener('touchend', handleInteractionEnd, { passive: true })
-      canvas.addEventListener('wheel', handleInteractionEnd, { passive: true })
-    }, 2000)
+    if (canvas) {
+      canvas.addEventListener('pointerdown', handlePointerDown, { passive: true })
+      canvas.addEventListener('pointerup', handlePointerUp, { passive: true })
+      canvas.addEventListener('touchstart', handleTouchStart, { passive: true })
+      canvas.addEventListener('touchend', handleTouchEnd, { passive: true })
+      canvas.addEventListener('wheel', handleWheel, { passive: true })
+    }
 
     rotationIntervalRef.current = setInterval(() => {
       const now = Date.now()
@@ -107,18 +133,16 @@ export default function GlobeView({ points, onSelectCity }: any) {
         clearTimeout(resumeTimerRef.current)
       }
 
-      if (listenerAttachTimerRef.current) {
-        clearTimeout(listenerAttachTimerRef.current)
-      }
-
       if (rotationIntervalRef.current) {
         clearInterval(rotationIntervalRef.current)
       }
 
       if (canvas) {
-        canvas.removeEventListener('pointerup', handleInteractionEnd)
-        canvas.removeEventListener('touchend', handleInteractionEnd)
-        canvas.removeEventListener('wheel', handleInteractionEnd)
+        canvas.removeEventListener('pointerdown', handlePointerDown)
+        canvas.removeEventListener('pointerup', handlePointerUp)
+        canvas.removeEventListener('touchstart', handleTouchStart)
+        canvas.removeEventListener('touchend', handleTouchEnd)
+        canvas.removeEventListener('wheel', handleWheel)
       }
     }
   }, [dimensions.width, dimensions.height])
