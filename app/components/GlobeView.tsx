@@ -33,6 +33,7 @@ export default function GlobeView({ points, onSelectCity }: GlobeViewProps) {
 
   const handleSelect = (point: Hotspot | null) => {
     if (!point) return
+    alert(`Selected: ${point.city}`)
     onSelectCity(point)
   }
 
@@ -63,6 +64,7 @@ export default function GlobeView({ points, onSelectCity }: GlobeViewProps) {
         touchStartRef.current = null
       }}
     >
+      {/* Non-interactive overlay */}
       <div className="pointer-events-none absolute inset-0 z-10" />
 
       <Globe
