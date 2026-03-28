@@ -26,7 +26,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
     () =>
       points.map((p: any) => ({
         ...p,
-        size: 0.6,
+        size: 0.8,
       })),
     [points]
   )
@@ -38,12 +38,14 @@ export default function GlobeView({ points, onSelectCity }: any) {
       <Globe
         width={dimensions.width}
         height={dimensions.height}
-        globeImageUrl="/globe.svg"
-        backgroundColor="rgba(0,0,0,0)"
+        backgroundColor="#111827"
+        waitForGlobeReady={false}
+        showAtmosphere={true}
+        showGraticules={true}
         pointsData={safePoints}
         pointLat="lat"
         pointLng="lng"
-        pointAltitude={0.02}
+        pointAltitude={0.03}
         pointRadius="size"
         pointsMerge={false}
         onPointClick={(point: any) => onSelectCity(point)}
