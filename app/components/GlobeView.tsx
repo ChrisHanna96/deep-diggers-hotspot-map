@@ -73,6 +73,18 @@ export default function GlobeView({ points, onSelectCity }: any) {
     globeRef.current.pointOfView(START_POV, 0)
     povRef.current = { ...START_POV }
 
+    const canvas = globeRef.current?.renderer?.()?.domElement
+
+    const handleInteractionEnd = () => {
+      pauseAndResume()
+    }
+
+    if (canvas) {
+      canvas.addEventListener('pointerup', handleInteractionEnd)
+      canvas.addEventListener('touchend', handleInteractionEnd, { passive: true })
+      canvas.addEventListener('wheel', handleInteractionEnd, { passive: true })
+    }
+
     const rotate = () => {
       const now = Date.now()
 
@@ -97,6 +109,12 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
       if (rotationFrameRef.current) {
         cancelAnimationFrame(rotationFrameRef.current)
+      }
+
+      if (canvas) {
+        canvas.removeEventListener('pointerup', handleInteractionEnd)
+        canvas.removeEventListener('touchend', handleInteractionEnd)
+        canvas.removeEventListener('wheel', handleInteractionEnd)
       }
     }
   }, [dimensions.width, dimensions.height])
@@ -128,12 +146,6 @@ export default function GlobeView({ points, onSelectCity }: any) {
         pointRadius="size"
         pointColor={() => '#5eead4'}
         pointsMerge={false}
-        onZoom={(pov: any) => {
-          if (pov) {
-            povRef.current = pov
-          }
-          pauseAndResume()
-        }}
         onPointClick={(point: any) => {
           pauseAndResume()
           onSelectCity(point)
