@@ -6,13 +6,25 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 const Globe = dynamic(() => import('react-globe.gl'), { ssr: false })
 
 export default function GlobeView({ points, onSelectCity }: any) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
   const globeRef = useRef<any>(null)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const animationRef = useRef<number | null>(null)
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
   useEffect(() => {
     function updateSize() {
+      const rect = wrapperRef.current?.getBoundingClientRect()
+
+      if (rect && rect.width > 0 && rect.height > 0) {
+        setDimensions({
+          width: Math.floor(rect.width),
+          height: Math.floor(rect.height),
+        })
+        return
+      }
+
       const isDesktop = window.innerWidth >= 768
 
       setDimensions({
@@ -37,7 +49,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
     return points.map((p: any) => ({
       ...p,
-      size: isMobile ? 2.8 : (p.size ?? 1.2),
+      size: isMobile ? 3 : (p.size ?? 1.2),
     }))
   }, [points])
 
@@ -49,15 +61,17 @@ export default function GlobeView({ points, onSelectCity }: any) {
     controls.autoRotateSpeed = 0.8
     controls.enableDamping = true
     controls.dampingFactor = 0.08
-    controls.update?.()
   }
 
-  const pauseAndResume = () => {
+  const disableAutoRotate = () => {
     const controls = globeRef.current?.controls?.()
     if (!controls) return
 
     controls.autoRotate = false
-    controls.update?.()
+  }
+
+  const pauseAndResume = () => {
+    disableAutoRotate()
 
     if (resumeTimerRef.current) {
       clearTimeout(resumeTimerRef.current)
@@ -83,9 +97,20 @@ export default function GlobeView({ points, onSelectCity }: any) {
     if (dimensions.width === 0 || dimensions.height === 0) return
     if (!globeRef.current) return
 
-    const setupTimer = setTimeout(() => {
+    const startTimer = setTimeout(() => {
+      enableAutoRotate()
+
+      const controls = globeRef.current?.controls?.()
       const canvas = globeRef.current?.renderer?.()?.domElement
-      if (!canvas) return
+
+      if (!controls || !canvas) return
+
+      const animate = () => {
+        controls.update()
+        animationRef.current = requestAnimationFrame(animate)
+      }
+
+      animationRef.current = requestAnimationFrame(animate)
 
       const handleInteractionEnd = () => {
         pauseAndResume()
@@ -103,10 +128,14 @@ export default function GlobeView({ points, onSelectCity }: any) {
     }, 400)
 
     return () => {
-      clearTimeout(setupTimer)
+      clearTimeout(startTimer)
 
       if (resumeTimerRef.current) {
         clearTimeout(resumeTimerRef.current)
+      }
+
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
       }
 
       globeRef.current?.__cleanupInteractionHandlers?.()
@@ -116,7 +145,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
   if (dimensions.width === 0 || dimensions.height === 0) return null
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div ref={wrapperRef} className="relative h-full w-full overflow-hidden">
       <button
         type="button"
         onClick={resetView}
@@ -140,11 +169,6 @@ export default function GlobeView({ points, onSelectCity }: any) {
         pointRadius="size"
         pointColor={() => '#5eead4'}
         pointsMerge={false}
-        onGlobeReady={() => {
-          setTimeout(() => {
-            enableAutoRotate()
-          }, 800)
-        }}
         onPointClick={(point: any) => {
           pauseAndResume()
           onSelectCity(point)
