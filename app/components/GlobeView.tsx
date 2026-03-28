@@ -23,16 +23,13 @@ export default function GlobeView({ points, onSelectCity }: GlobeViewProps) {
     () =>
       points.map((p) => ({
         ...p,
-        size: p.size ?? 0.9
+        size: p.size ?? 0.45
       })),
     [points]
   )
 
   return (
-    <div
-      className="relative h-full w-full"
-      style={{ touchAction: 'none' }}
-    >
+    <div className="relative h-full w-full">
       <div className="pointer-events-none absolute inset-0 z-10" />
 
       <Globe
@@ -45,15 +42,44 @@ export default function GlobeView({ points, onSelectCity }: GlobeViewProps) {
         pointsData={safePoints}
         pointLat="lat"
         pointLng="lng"
-        pointLabel="city"
-        pointAltitude={0.04}
+        pointAltitude={0.02}
         pointRadius="size"
-        pointResolution={18}
         pointsMerge={false}
-        onPointClick={(point) => {
+        pointColor={() => '#d1d5db'}
+        htmlElementsData={safePoints}
+        htmlLat="lat"
+        htmlLng="lng"
+        htmlAltitude={0.03}
+        htmlElement={(point) => {
           const cityPoint = point as Hotspot
-          alert(`Selected: ${cityPoint.city}`)
-          onSelectCity(cityPoint)
+
+          const el = document.createElement('button')
+          el.type = 'button'
+          el.setAttribute('aria-label', cityPoint.city)
+          el.title = cityPoint.city
+
+          el.style.width = '28px'
+          el.style.height = '28px'
+          el.style.borderRadius = '9999px'
+          el.style.border = '2px solid rgba(255,255,255,0.95)'
+          el.style.background = 'rgba(255,255,255,0.18)'
+          el.style.boxShadow = '0 0 0 1px rgba(0,0,0,0.35)'
+          el.style.cursor = 'pointer'
+          el.style.pointerEvents = 'auto'
+          el.style.touchAction = 'manipulation'
+          el.style.webkitTapHighlightColor = 'transparent'
+          el.style.display = 'block'
+
+          const handleSelect = (e: Event) => {
+            e.preventDefault()
+            e.stopPropagation()
+            onSelectCity(cityPoint)
+          }
+
+          el.addEventListener('click', handleSelect)
+          el.addEventListener('touchend', handleSelect)
+
+          return el
         }}
       />
     </div>
