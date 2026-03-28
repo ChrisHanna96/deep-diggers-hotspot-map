@@ -10,10 +10,9 @@ const START_POV = { lat: 20, lng: 0, altitude: 2.2 }
 export default function GlobeView({ points, onSelectCity }: any) {
   const globeRef = useRef<any>(null)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const rotationFrameRef = useRef<number | null>(null)
+  const rotationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const pauseUntilRef = useRef<number>(0)
   const povRef = useRef({ ...START_POV })
-  const startupIgnoreUntilRef = useRef<number>(0)
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
@@ -48,8 +47,6 @@ export default function GlobeView({ points, onSelectCity }: any) {
   }, [points])
 
   const pauseAndResume = () => {
-    if (Date.now() < startupIgnoreUntilRef.current) return
-
     pauseUntilRef.current = Date.now() + 3000
 
     if (resumeTimerRef.current) {
@@ -76,7 +73,6 @@ export default function GlobeView({ points, onSelectCity }: any) {
     globeRef.current.pointOfView(START_POV, 0)
     povRef.current = { ...START_POV }
     pauseUntilRef.current = 0
-    startupIgnoreUntilRef.current = Date.now() + 1500
 
     const canvas = globeRef.current?.renderer?.()?.domElement
 
@@ -90,7 +86,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
       canvas.addEventListener('wheel', handleInteractionEnd, { passive: true })
     }
 
-    const rotate = () => {
+    rotationIntervalRef.current = setInterval(() => {
       const now = Date.now()
 
       if (now >= pauseUntilRef.current && globeRef.current?.pointOfView) {
@@ -101,19 +97,15 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
         globeRef.current.pointOfView(povRef.current, 0)
       }
-
-      rotationFrameRef.current = requestAnimationFrame(rotate)
-    }
-
-    rotationFrameRef.current = requestAnimationFrame(rotate)
+    }, 40)
 
     return () => {
       if (resumeTimerRef.current) {
         clearTimeout(resumeTimerRef.current)
       }
 
-      if (rotationFrameRef.current) {
-        cancelAnimationFrame(rotationFrameRef.current)
+      if (rotationIntervalRef.current) {
+        clearInterval(rotationIntervalRef.current)
       }
 
       if (canvas) {
