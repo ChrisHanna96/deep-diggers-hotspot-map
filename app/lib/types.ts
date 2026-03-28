@@ -47,6 +47,13 @@ export type SeminalTrackRow = {
   track: string;
   year: number | null;
   note: string | null;
+  bandcamp_url?: string | null;
+  discogs_url?: string | null;
+  beatport_url?: string | null;
+  traxsource_url?: string | null;
+  juno_url?: string | null;
+  wikipedia_url?: string | null;
+  sort_order: number;
 };
 
 export type AccessPointRow = {
