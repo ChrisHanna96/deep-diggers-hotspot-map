@@ -38,7 +38,11 @@ export default function ClientHomeSupabase({
 
   return (
     <main className="flex h-[100dvh] w-screen flex-col bg-black text-white md:h-screen md:flex-row">
-      <section className="relative z-0 h-[55dvh] w-full overflow-hidden md:h-full md:w-[58%]">
+      <section className="relative z-0 h-[55dvh] w-full overflow-hidden pt-20 md:h-full md:w-[58%] md:pt-24">
+        <div className="pointer-events-none absolute left-0 right-0 top-0 z-30 px-4 py-3 text-sm text-gray-300 md:px-6 md:py-4">
+          Drag or move the globe to explore scenes. Select cities to open scene details, key figures, mixes and digging routes. You can also zoom in.
+        </div>
+
         <GlobeView
           points={points}
           onSelectCity={(point: any) => {
