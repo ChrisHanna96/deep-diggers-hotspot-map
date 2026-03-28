@@ -46,7 +46,6 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
     controls.autoRotate = true
     controls.autoRotateSpeed = 0.8
-    controls.enablePan = false
     controls.enableDamping = true
     controls.dampingFactor = 0.08
     controls.update?.()
@@ -80,12 +79,40 @@ export default function GlobeView({ points, onSelectCity }: any) {
   }
 
   useEffect(() => {
+    if (dimensions.width === 0 || dimensions.height === 0) return
+    if (!globeRef.current) return
+
+    const setupTimer = setTimeout(() => {
+      enableAutoRotate()
+
+      const canvas = globeRef.current?.renderer?.()?.domElement
+      if (!canvas) return
+
+      const handleInteractionEnd = () => {
+        pauseAndResume()
+      }
+
+      canvas.addEventListener('pointerup', handleInteractionEnd)
+      canvas.addEventListener('touchend', handleInteractionEnd, { passive: true })
+      canvas.addEventListener('wheel', handleInteractionEnd, { passive: true })
+
+      ;(globeRef.current as any).__cleanupInteractionHandlers = () => {
+        canvas.removeEventListener('pointerup', handleInteractionEnd)
+        canvas.removeEventListener('touchend', handleInteractionEnd)
+        canvas.removeEventListener('wheel', handleInteractionEnd)
+      }
+    }, 250)
+
     return () => {
+      clearTimeout(setupTimer)
+
       if (resumeTimerRef.current) {
         clearTimeout(resumeTimerRef.current)
       }
+
+      globeRef.current?.__cleanupInteractionHandlers?.()
     }
-  }, [])
+  }, [dimensions.width, dimensions.height])
 
   if (dimensions.width === 0 || dimensions.height === 0) return null
 
@@ -114,19 +141,6 @@ export default function GlobeView({ points, onSelectCity }: any) {
         pointRadius="size"
         pointColor={() => '#5eead4'}
         pointsMerge={false}
-        onGlobeReady={() => {
-          enableAutoRotate()
-
-          if (globeRef.current?.pointOfView) {
-            globeRef.current.pointOfView(
-              { lat: 20, lng: 0, altitude: 2.2 },
-              0
-            )
-          }
-        }}
-        onZoom={() => {
-          pauseAndResume()
-        }}
         onPointClick={(point: any) => {
           pauseAndResume()
           onSelectCity(point)
