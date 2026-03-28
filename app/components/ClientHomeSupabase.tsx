@@ -1,149 +1,56 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
+import GlobeView from './GlobeView'
+import CityPanelSupabase from './CityPanelSupabase'
+import type { Location } from '../lib/types'
 
-const Globe = dynamic(() => import('react-globe.gl'), { ssr: false })
+type Hotspot = {
+  id: string
+  city: string
+  lat: number
+  lng: number
+  size?: number
+  location: Location
+}
 
-const START_POV = { lat: 20, lng: 0, altitude: 2.2 }
+type ClientHomeSupabaseProps = {
+  locations: Location[]
+}
 
-export default function GlobeView({ points, onSelectCity }: any) {
-  const wrapperRef = useRef<HTMLDivElement | null>(null)
-  const globeRef = useRef<any>(null)
-  const animationRef = useRef<number | null>(null)
-  const pauseUntilRef = useRef<number>(0)
-  const povRef = useRef({ ...START_POV })
+export default function ClientHomeSupabase({
+  locations,
+}: ClientHomeSupabaseProps) {
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
 
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
-
-  useEffect(() => {
-    const updateSize = () => {
-      const rect = wrapperRef.current?.getBoundingClientRect()
-
-      if (rect && rect.width > 0 && rect.height > 0) {
-        setDimensions({
-          width: Math.floor(rect.width),
-          height: Math.floor(rect.height),
-        })
-        return
-      }
-
-      const isDesktop = window.innerWidth >= 768
-
-      setDimensions({
-        width: isDesktop
-          ? Math.floor(window.innerWidth * 0.58)
-          : window.innerWidth,
-        height: isDesktop
-          ? window.innerHeight
-          : Math.floor(window.innerHeight * 0.55),
-      })
-    }
-
-    updateSize()
-
-    const observer = new ResizeObserver(() => {
-      updateSize()
-    })
-
-    if (wrapperRef.current) {
-      observer.observe(wrapperRef.current)
-    }
-
-    window.addEventListener('resize', updateSize)
-
-    return () => {
-      observer.disconnect()
-      window.removeEventListener('resize', updateSize)
-    }
-  }, [])
-
-  const safePoints = useMemo(() => {
-    const isMobile =
-      typeof window !== 'undefined' && window.innerWidth < 768
-
-    return points.map((p: any) => ({
-      ...p,
-      size: isMobile ? 3 : (p.size ?? 1.2),
-    }))
-  }, [points])
-
-  const pauseRotation = () => {
-    pauseUntilRef.current = Date.now() + 3000
-  }
-
-  const resetView = () => {
-    povRef.current = { ...START_POV }
-    globeRef.current?.pointOfView?.(povRef.current, 800)
-    pauseRotation()
-  }
-
-  useEffect(() => {
-    if (dimensions.width === 0 || dimensions.height === 0) return
-    if (!globeRef.current) return
-
-    globeRef.current.pointOfView?.(START_POV, 0)
-
-    const animate = () => {
-      const now = Date.now()
-
-      if (now >= pauseUntilRef.current && globeRef.current?.pointOfView) {
-        povRef.current = {
-          ...povRef.current,
-          lng: povRef.current.lng + 0.12,
-        }
-
-        globeRef.current.pointOfView(povRef.current, 0)
-      }
-
-      animationRef.current = requestAnimationFrame(animate)
-    }
-
-    animationRef.current = requestAnimationFrame(animate)
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
-      }
-    }
-  }, [dimensions.width, dimensions.height])
-
-  if (dimensions.width === 0 || dimensions.height === 0) return null
+  const points: Hotspot[] = useMemo(
+    () =>
+      locations.map((location) => ({
+        id: location.id,
+        city: location.city,
+        lat: location.latitude,
+        lng: location.longitude,
+        size: 1.2,
+        location,
+      })),
+    [locations]
+  )
 
   return (
-    <div ref={wrapperRef} className="relative h-full w-full overflow-hidden">
-      <button
-        type="button"
-        onClick={resetView}
-        className="absolute left-4 top-4 z-20 rounded-xl border border-teal-700/40 bg-teal-900/20 px-3 py-2 text-sm font-medium text-teal-200 transition hover:bg-teal-900/30"
-      >
-        Reset View
-      </button>
+    <main className="flex h-[100dvh] w-screen min-h-0 flex-col bg-black text-white md:h-screen md:flex-row">
+      <section className="relative z-0 min-h-0 flex-[11] overflow-hidden md:h-full md:w-[58%] md:flex-none">
+        <GlobeView
+          points={points}
+          onSelectCity={(point: any) => {
+            const hotspot = point as Hotspot
+            setSelectedLocation(hotspot.location)
+          }}
+        />
+      </section>
 
-      <Globe
-        ref={globeRef}
-        width={dimensions.width}
-        height={dimensions.height}
-        backgroundColor="#111827"
-        waitForGlobeReady={false}
-        showAtmosphere={true}
-        showGraticules={true}
-        pointsData={safePoints}
-        pointLat="lat"
-        pointLng="lng"
-        pointAltitude={0.03}
-        pointRadius="size"
-        pointColor={() => '#5eead4'}
-        pointsMerge={false}
-        onZoom={(pov: any) => {
-          if (pov) povRef.current = pov
-          pauseRotation()
-        }}
-        onPointClick={(point: any) => {
-          pauseRotation()
-          onSelectCity(point)
-        }}
-      />
-    </div>
+      <section className="relative z-20 min-h-0 flex-[9] bg-[#12161B] md:h-full md:w-[42%] md:flex-none md:border-l md:border-gray-800">
+        <CityPanelSupabase location={selectedLocation} />
+      </section>
+    </main>
   )
 }
