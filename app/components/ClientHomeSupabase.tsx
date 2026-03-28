@@ -38,10 +38,11 @@ export default function ClientHomeSupabase({
 
   return (
     <main className="flex h-[100dvh] w-screen flex-col bg-black text-white md:h-screen md:flex-row">
-      <section className="relative z-0 h-[55dvh] w-full overflow-hidden pt-16 md:h-full md:w-[58%] md:pt-20">
-        {/* CLEAN TOP GUIDANCE */}
-        <div className="pointer-events-none absolute left-0 right-0 top-0 z-30 px-4 py-2 text-xs text-gray-400 md:px-6 md:py-3 md:text-sm">
-          Explore global underground scenes — drag or zoom
+      <section className="relative z-0 h-[55dvh] w-full overflow-hidden pt-14 md:h-full md:w-[58%] md:pt-16">
+        <div className="pointer-events-none absolute left-0 right-0 top-0 z-30 px-4 py-2 md:px-6 md:py-3">
+          <p className="text-xs font-medium tracking-[0.08em] text-teal-200/90 md:text-sm">
+            Explore global underground scenes — drag or zoom
+          </p>
         </div>
 
         <GlobeView
