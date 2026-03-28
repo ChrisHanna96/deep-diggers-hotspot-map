@@ -12,6 +12,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
   const animationRef = useRef<number | null>(null)
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+  const [globeReady, setGlobeReady] = useState(false)
 
   useEffect(() => {
     function updateSize() {
@@ -55,12 +56,13 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
   const enableAutoRotate = () => {
     const controls = globeRef.current?.controls?.()
-    if (!controls) return
+    if (!controls) return false
 
     controls.autoRotate = true
     controls.autoRotateSpeed = 0.8
     controls.enableDamping = true
     controls.dampingFactor = 0.08
+    return true
   }
 
   const disableAutoRotate = () => {
@@ -94,16 +96,17 @@ export default function GlobeView({ points, onSelectCity }: any) {
   }
 
   useEffect(() => {
+    if (!globeReady) return
     if (dimensions.width === 0 || dimensions.height === 0) return
     if (!globeRef.current) return
 
     const startTimer = setTimeout(() => {
-      enableAutoRotate()
-
       const controls = globeRef.current?.controls?.()
       const canvas = globeRef.current?.renderer?.()?.domElement
 
       if (!controls || !canvas) return
+
+      enableAutoRotate()
 
       const animate = () => {
         controls.update()
@@ -125,7 +128,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
         canvas.removeEventListener('touchend', handleInteractionEnd)
         canvas.removeEventListener('wheel', handleInteractionEnd)
       }
-    }, 400)
+    }, 150)
 
     return () => {
       clearTimeout(startTimer)
@@ -140,7 +143,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
       globeRef.current?.__cleanupInteractionHandlers?.()
     }
-  }, [dimensions.width, dimensions.height])
+  }, [globeReady, dimensions.width, dimensions.height])
 
   if (dimensions.width === 0 || dimensions.height === 0) return null
 
@@ -169,6 +172,9 @@ export default function GlobeView({ points, onSelectCity }: any) {
         pointRadius="size"
         pointColor={() => '#5eead4'}
         pointsMerge={false}
+        onGlobeReady={() => {
+          setGlobeReady(true)
+        }}
         onPointClick={(point: any) => {
           pauseAndResume()
           onSelectCity(point)
