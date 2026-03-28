@@ -1,132 +1,74 @@
-"use client";
+'use client'
 
-import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
-import { Location } from "../lib/types";
+import Globe from 'react-globe.gl'
+import { useRef, useMemo, useState } from 'react'
 
-const Globe = dynamic(() => import("react-globe.gl"), { ssr: false });
+type Hotspot = {
+  id: string
+  city: string
+  lat: number
+  lng: number
+  size?: number
+}
 
 type GlobeViewProps = {
-  locations: Location[];
-  onSelectCity: (cityName: string) => void;
-};
+  points: Hotspot[]
+  onSelectCity: (point: Hotspot) => void
+}
 
-export default function GlobeView({ locations, onSelectCity }: GlobeViewProps) {
-  const globeRef = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [globeSize, setGlobeSize] = useState({ width: 900, height: 900 });
+export default function GlobeView({ points, onSelectCity }: GlobeViewProps) {
+  const globeRef = useRef<any>(null)
+  const [isInteracting, setIsInteracting] = useState(false)
 
-  useEffect(() => {
-    const updateSize = () => {
-      if (!containerRef.current) return;
-      const { clientWidth, clientHeight } = containerRef.current;
-      setGlobeSize({
-        width: clientWidth || 900,
-        height: clientHeight || 900,
-      });
-    };
-
-    updateSize();
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateSize();
-    });
-
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-
-    window.addEventListener("resize", updateSize);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", updateSize);
-    };
-  }, []);
-
-  useEffect(() => {
-    const startRotation = () => {
-      if (!globeRef.current) return;
-      const controls = globeRef.current.controls();
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 0.35;
-      controls.enableZoom = true;
-      controls.enablePan = false;
-    };
-
-    const initTimer = setTimeout(() => {
-      startRotation();
-    }, 300);
-
-    return () => {
-      clearTimeout(initTimer);
-      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-    };
-  }, []);
-
-  const pauseRotation = () => {
-    if (!globeRef.current) return;
-    const controls = globeRef.current.controls();
-    controls.autoRotate = false;
-
-    if (resumeTimerRef.current) {
-      clearTimeout(resumeTimerRef.current);
-      resumeTimerRef.current = null;
-    }
-  };
-
-  const resumeRotationWithDelay = () => {
-    if (!globeRef.current) return;
-
-    if (resumeTimerRef.current) {
-      clearTimeout(resumeTimerRef.current);
-    }
-
-    resumeTimerRef.current = setTimeout(() => {
-      if (!globeRef.current) return;
-      const controls = globeRef.current.controls();
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 0.35;
-    }, 3000);
-  };
-
-  const points = locations.map((location) => ({
-    lat: location.latitude,
-    lng: location.longitude,
-    size: location.tier === 1 ? 0.6 : 0.4,
-    city: location.city,
-  }));
+  // Ensure every point has a visible/tappable size
+  const safePoints = useMemo(
+    () =>
+      points.map((p) => ({
+        ...p,
+        size: p.size ?? 0.35
+      })),
+    [points]
+  )
 
   return (
     <div
-      ref={containerRef}
-      className="relative w-full h-[100vh] overflow-hidden border-r border-gray-800"
-      onMouseDown={pauseRotation}
-      onMouseUp={resumeRotationWithDelay}
-      onMouseLeave={resumeRotationWithDelay}
-      onTouchStart={pauseRotation}
-      onTouchEnd={resumeRotationWithDelay}
+      className="relative w-full h-full"
+      style={{ touchAction: 'none' }}
     >
-      <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-xl border border-gray-800 bg-black/75 px-5 py-3 text-center text-sm text-white shadow-lg md:text-base">
-        <p className="font-medium">Drag the globe to explore scenes</p>
-      </div>
+      {/* NON-INTERACTIVE OVERLAY (SAFE) */}
+      <div className="pointer-events-none absolute inset-0 z-10" />
 
       <Globe
         ref={globeRef}
-        width={globeSize.width}
-        height={globeSize.height}
-        globeImageUrl="https://unpkg.com/three-globe/example/img/earth-dark.jpg"
-        backgroundColor="#000000"
-        pointsData={points}
+
+        // sizing
+        width={undefined}
+        height={undefined}
+
+        // visuals
+        globeImageUrl="/earth-night.jpg"
+        backgroundColor="rgba(0,0,0,0)"
+
+        // DATA
+        pointsData={safePoints}
         pointLat="lat"
         pointLng="lng"
         pointAltitude={0.02}
         pointRadius="size"
-        pointColor={() => "#5FA3A3"}
-        pointLabel={(d: any) => d.city}
-        onPointClick={(d: any) => onSelectCity(d.city)}
+
+        // CRITICAL: must be FALSE or clicks/taps will NOT work
+        pointsMerge={false}
+
+        // INTERACTION
+        onPointClick={(point) => {
+          onSelectCity(point as Hotspot)
+        }}
+
+        // OPTIONAL: interaction state tracking (safe)
+        onZoom={() => setIsInteracting(true)}
+        onRotate={() => setIsInteracting(true)}
+        onRotateEnd={() => setIsInteracting(false)}
       />
     </div>
-  );
+  )
 }
