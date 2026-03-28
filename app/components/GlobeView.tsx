@@ -45,7 +45,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
     return points.map((p: any) => ({
       ...p,
-      size: isMobile ? 2.8 : (p.size ?? 1.2),
+      size: isMobile ? 1.6 : (p.size ?? 1.2),
     }))
   }, [points])
 
