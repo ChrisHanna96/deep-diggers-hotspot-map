@@ -19,6 +19,14 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const [globeReady, setGlobeReady] = useState(false)
+  const [debug, setDebug] = useState({
+    effectRuns: 0,
+    ticks: 0,
+    pauses: 0,
+    globeReadyCount: 0,
+    lng: 0,
+    paused: false,
+  })
 
   useEffect(() => {
     function updateSize() {
@@ -50,8 +58,18 @@ export default function GlobeView({ points, onSelectCity }: any) {
     }))
   }, [points])
 
-  const pauseAndResume = () => {
+  const pauseAndResume = (source = 'unknown') => {
     pauseUntilRef.current = Date.now() + 3000
+
+    setDebug((prev) => ({
+      ...prev,
+      pauses: prev.pauses + 1,
+      paused: true,
+    }))
+
+    console.log('[Globe debug] pauseAndResume', source, {
+      pauseUntil: pauseUntilRef.current,
+    })
 
     if (resumeTimerRef.current) {
       clearTimeout(resumeTimerRef.current)
@@ -59,6 +77,11 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
     resumeTimerRef.current = setTimeout(() => {
       pauseUntilRef.current = 0
+      setDebug((prev) => ({
+        ...prev,
+        paused: false,
+      }))
+      console.log('[Globe debug] resume')
     }, 3000)
   }
 
@@ -67,13 +90,24 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
     povRef.current = { ...START_POV }
     globeRef.current.pointOfView(START_POV, 800)
-    pauseAndResume()
+    pauseAndResume('resetView')
   }
 
   useEffect(() => {
     if (!globeReady) return
     if (dimensions.width === 0 || dimensions.height === 0) return
     if (!globeRef.current) return
+
+    setDebug((prev) => ({
+      ...prev,
+      effectRuns: prev.effectRuns + 1,
+    }))
+
+    console.log('[Globe debug] effect start', {
+      globeReady,
+      width: dimensions.width,
+      height: dimensions.height,
+    })
 
     globeRef.current.pointOfView(START_POV, 0)
     povRef.current = { ...START_POV }
@@ -85,28 +119,33 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
     const handlePointerDown = () => {
       pointerActiveRef.current = true
+      console.log('[Globe debug] pointerdown')
     }
 
     const handlePointerUp = () => {
+      console.log('[Globe debug] pointerup', { active: pointerActiveRef.current })
       if (pointerActiveRef.current) {
         pointerActiveRef.current = false
-        pauseAndResume()
+        pauseAndResume('pointerup')
       }
     }
 
     const handleTouchStart = () => {
       touchActiveRef.current = true
+      console.log('[Globe debug] touchstart')
     }
 
     const handleTouchEnd = () => {
+      console.log('[Globe debug] touchend', { active: touchActiveRef.current })
       if (touchActiveRef.current) {
         touchActiveRef.current = false
-        pauseAndResume()
+        pauseAndResume('touchend')
       }
     }
 
     const handleWheel = () => {
-      pauseAndResume()
+      console.log('[Globe debug] wheel')
+      pauseAndResume('wheel')
     }
 
     if (canvas) {
@@ -127,10 +166,18 @@ export default function GlobeView({ points, onSelectCity }: any) {
         }
 
         globeRef.current.pointOfView(povRef.current, 0)
+
+        setDebug((prev) => ({
+          ...prev,
+          ticks: prev.ticks + 1,
+          lng: Number(povRef.current.lng.toFixed(2)),
+        }))
       }
     }, 40)
 
     return () => {
+      console.log('[Globe debug] effect cleanup')
+
       if (resumeTimerRef.current) {
         clearTimeout(resumeTimerRef.current)
       }
@@ -153,10 +200,20 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
   return (
     <div className="relative h-full w-full overflow-hidden">
+      <div className="absolute left-4 top-4 z-30 rounded-xl border border-red-500/40 bg-black/80 px-3 py-2 text-xs text-white">
+        <div>ready: {globeReady ? 'yes' : 'no'}</div>
+        <div>effectRuns: {debug.effectRuns}</div>
+        <div>globeReadyCount: {debug.globeReadyCount}</div>
+        <div>ticks: {debug.ticks}</div>
+        <div>pauses: {debug.pauses}</div>
+        <div>paused: {debug.paused ? 'yes' : 'no'}</div>
+        <div>lng: {debug.lng}</div>
+      </div>
+
       <button
         type="button"
         onClick={resetView}
-        className="absolute left-4 top-4 z-20 rounded-xl border border-teal-700/40 bg-teal-900/20 px-3 py-2 text-sm font-medium text-teal-200 transition hover:bg-teal-900/30"
+        className="absolute left-4 top-32 z-20 rounded-xl border border-teal-700/40 bg-teal-900/20 px-3 py-2 text-sm font-medium text-teal-200 transition hover:bg-teal-900/30"
       >
         Reset View
       </button>
@@ -178,10 +235,15 @@ export default function GlobeView({ points, onSelectCity }: any) {
         pointColor={() => '#5eead4'}
         pointsMerge={false}
         onGlobeReady={() => {
+          console.log('[Globe debug] onGlobeReady')
           setGlobeReady(true)
+          setDebug((prev) => ({
+            ...prev,
+            globeReadyCount: prev.globeReadyCount + 1,
+          }))
         }}
         onPointClick={(point: any) => {
-          pauseAndResume()
+          pauseAndResume('pointClick')
           onSelectCity(point)
         }}
       />
