@@ -168,9 +168,9 @@ export default function GlobeView({ points, onSelectCity }: any) {
       <button
         type="button"
         onClick={resetView}
-        className="absolute left-4 top-4 z-20 rounded-xl border border-teal-700/40 bg-teal-900/20 px-3 py-2 text-sm font-medium text-teal-200 transition hover:bg-teal-900/30"
+        className="absolute right-4 top-4 z-20 rounded-lg border border-teal-700/30 bg-teal-900/10 px-3 py-1.5 text-xs font-medium text-teal-200 transition hover:bg-teal-900/20"
       >
-        Reset View
+        Reset
       </button>
 
       <Globe
