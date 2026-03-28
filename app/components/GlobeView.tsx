@@ -11,6 +11,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
   const globeRef = useRef<any>(null)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const rotationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const listenerAttachTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pauseUntilRef = useRef<number>(0)
   const povRef = useRef({ ...START_POV })
 
@@ -80,11 +81,13 @@ export default function GlobeView({ points, onSelectCity }: any) {
       pauseAndResume()
     }
 
-    if (canvas) {
+    listenerAttachTimerRef.current = setTimeout(() => {
+      if (!canvas) return
+
       canvas.addEventListener('pointerup', handleInteractionEnd)
       canvas.addEventListener('touchend', handleInteractionEnd, { passive: true })
       canvas.addEventListener('wheel', handleInteractionEnd, { passive: true })
-    }
+    }, 2000)
 
     rotationIntervalRef.current = setInterval(() => {
       const now = Date.now()
@@ -102,6 +105,10 @@ export default function GlobeView({ points, onSelectCity }: any) {
     return () => {
       if (resumeTimerRef.current) {
         clearTimeout(resumeTimerRef.current)
+      }
+
+      if (listenerAttachTimerRef.current) {
+        clearTimeout(listenerAttachTimerRef.current)
       }
 
       if (rotationIntervalRef.current) {
