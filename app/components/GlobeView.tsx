@@ -18,6 +18,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
   const touchActiveRef = useRef(false)
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+  const [globeReady, setGlobeReady] = useState(false)
 
   useEffect(() => {
     function updateSize() {
@@ -70,6 +71,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
   }
 
   useEffect(() => {
+    if (!globeReady) return
     if (dimensions.width === 0 || dimensions.height === 0) return
     if (!globeRef.current) return
 
@@ -145,7 +147,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
         canvas.removeEventListener('wheel', handleWheel)
       }
     }
-  }, [dimensions.width, dimensions.height])
+  }, [globeReady, dimensions.width, dimensions.height])
 
   if (dimensions.width === 0 || dimensions.height === 0) return null
 
@@ -165,6 +167,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
         height={dimensions.height}
         backgroundColor="#111827"
         waitForGlobeReady={false}
+        animateIn={false}
         showAtmosphere={true}
         showGraticules={true}
         pointsData={safePoints}
@@ -174,6 +177,9 @@ export default function GlobeView({ points, onSelectCity }: any) {
         pointRadius="size"
         pointColor={() => '#5eead4'}
         pointsMerge={false}
+        onGlobeReady={() => {
+          setGlobeReady(true)
+        }}
         onPointClick={(point: any) => {
           pauseAndResume()
           onSelectCity(point)
