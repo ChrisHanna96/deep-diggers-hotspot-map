@@ -1,37 +1,56 @@
-"use client";
+'use client'
 
-import { useMemo, useState } from "react";
-import GlobeView from "./GlobeView";
-import CityPanelSupabase from "./CityPanelSupabase";
-import { Location } from "../lib/types";
+import { useMemo, useState } from 'react'
+import GlobeView from './GlobeView'
+import CityPanelSupabase from './CityPanelSupabase'
+import type { Location } from '../lib/types'
+
+type Hotspot = {
+  id: string
+  city: string
+  lat: number
+  lng: number
+  size?: number
+  location: Location
+}
 
 type ClientHomeSupabaseProps = {
-  locations: Location[];
-};
+  locations: Location[]
+}
 
 export default function ClientHomeSupabase({
   locations,
 }: ClientHomeSupabaseProps) {
-  const [selectedCityName, setSelectedCityName] = useState<string>("");
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
 
-  const selectedLocation = useMemo(() => {
-    return (
-      locations.find((location) => location.city === selectedCityName) ?? null
-    );
-  }, [locations, selectedCityName]);
+  const points: Hotspot[] = useMemo(
+    () =>
+      locations.map((location) => ({
+        id: location.id,
+        city: location.city,
+        lat: location.latitude,
+        lng: location.longitude,
+        size: 0.45,
+        location,
+      })),
+    [locations]
+  )
 
   return (
-    <main className="h-screen w-screen bg-black text-white flex flex-col md:flex-row">
-      <div className="relative h-[65vh] w-full md:h-screen md:w-[68%]">
+    <main className="h-screen w-screen bg-black text-white md:flex">
+      <section className="relative h-[55vh] w-full md:h-full md:w-[58%]">
         <GlobeView
-          locations={locations}
-          onSelectCity={(cityName) => setSelectedCityName(cityName)}
+          points={points}
+          onSelectCity={(point) => {
+            const hotspot = point as Hotspot
+            setSelectedLocation(hotspot.location)
+          }}
         />
-      </div>
+      </section>
 
-      <div className="h-[35vh] w-full border-t border-gray-800 md:h-screen md:w-[32%] md:border-t-0 md:border-l">
+      <section className="h-[45vh] w-full border-t border-gray-800 md:h-full md:w-[42%] md:border-l md:border-t-0">
         <CityPanelSupabase location={selectedLocation} />
-      </div>
+      </section>
     </main>
-  );
+  )
 }

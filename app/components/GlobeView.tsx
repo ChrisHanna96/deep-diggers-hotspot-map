@@ -1,7 +1,11 @@
 'use client'
 
-import Globe from 'react-globe.gl'
+import dynamic from 'next/dynamic'
 import { useMemo, useRef } from 'react'
+
+const Globe = dynamic(() => import('react-globe.gl'), {
+  ssr: false,
+})
 
 type Hotspot = {
   id: string
@@ -23,7 +27,7 @@ export default function GlobeView({ points, onSelectCity }: GlobeViewProps) {
     () =>
       points.map((p) => ({
         ...p,
-        size: p.size ?? 0.45
+        size: p.size ?? 0.45,
       })),
     [points]
   )
@@ -50,7 +54,7 @@ export default function GlobeView({ points, onSelectCity }: GlobeViewProps) {
         htmlLat="lat"
         htmlLng="lng"
         htmlAltitude={0.03}
-        htmlElement={(point) => {
+        htmlElement={(point: object) => {
           const cityPoint = point as Hotspot
 
           const el = document.createElement('button')
@@ -67,7 +71,6 @@ export default function GlobeView({ points, onSelectCity }: GlobeViewProps) {
           el.style.cursor = 'pointer'
           el.style.pointerEvents = 'auto'
           el.style.touchAction = 'manipulation'
-          el.style.webkitTapHighlightColor = 'transparent'
           el.style.display = 'block'
 
           const handleSelect = (e: Event) => {
