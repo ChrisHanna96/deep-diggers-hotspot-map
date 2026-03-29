@@ -160,12 +160,40 @@ export default function CityPanelSupabase({
   if (!location) {
     return (
       <aside className="h-full w-full overflow-y-auto bg-[#0F1720] p-5 text-white md:p-6">
-        <div className="flex h-full items-center justify-center">
-          <div className="w-full rounded-xl border border-white/10 bg-[#161B21] p-5">
-            <p className="text-sm leading-relaxed text-gray-300">
-              Select a city on the globe to open the scene panel.
+        <div className="space-y-5">
+          <header className="border-b border-white/10 pb-5">
+            <h1 className="text-xl font-semibold leading-tight tracking-tight text-white md:text-2xl">
+              Select a city
+            </h1>
+            <p className="mt-3 text-sm leading-relaxed text-gray-300">
+              Choose a point on the globe to open the scene panel.
             </p>
-          </div>
+          </header>
+
+          <Section title="How to Use">
+            <div className="space-y-4 text-sm leading-relaxed text-gray-300">
+              <div>
+                <p className="font-medium text-white">1. Navigate the globe</p>
+                <p className="mt-1">
+                  Drag to rotate, zoom in, and select a city marker.
+                </p>
+              </div>
+
+              <div>
+                <p className="font-medium text-white">2. Open the scene panel</p>
+                <p className="mt-1">
+                  Selecting a city loads its local notes, DJs, clubs, tracks, and links.
+                </p>
+              </div>
+
+              <div>
+                <p className="font-medium text-white">3. Use links to dig deeper</p>
+                <p className="mt-1">
+                  Access points, mixes, and documentaries give you routes into further research.
+                </p>
+              </div>
+            </div>
+          </Section>
         </div>
       </aside>
     );
