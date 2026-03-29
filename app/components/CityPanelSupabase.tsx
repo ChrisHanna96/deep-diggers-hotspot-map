@@ -37,10 +37,6 @@ function sortDiggingPath(items: DiggingPathStepRow[]) {
   return [...items].sort((a, b) => a.step_number - b.step_number);
 }
 
-function fallback(value: string | null | undefined, emptyText: string) {
-  return isNonEmpty(value) ? value : emptyText;
-}
-
 function Section({
   title,
   children,
@@ -160,6 +156,23 @@ export default function CityPanelSupabase({
     [diggingPath]
   );
 
+  const hasSoundsAndMicroscenes = isNonEmpty(location?.sounds_and_microscenes);
+  const hasSceneEssentials = isNonEmpty(sceneEssentials?.notes);
+  const hasResidentBackbone = isNonEmpty(sceneEssentials?.resident_backbone);
+  const hasHowSceneFunctions = isNonEmpty(sceneEssentials?.how_scene_functions);
+  const hasCurrentEnergy = isNonEmpty(sceneEssentials?.current_energy);
+  const hasDjsByGeneration = !!sceneEssentials?.djs_by_generation?.length;
+  const hasClubs = !!sceneEssentials?.clubs?.length;
+  const hasSonicIdentity = isNonEmpty(sonicIdentity?.description);
+  const hasDancefloorBehaviour =
+    isNonEmpty(sonicIdentity?.dancefloor_behaviour) ||
+    isNonEmpty(sonicIdentity?.tempo_range);
+  const hasMixes = !!orderedMixes.length;
+  const hasTracks = !!orderedTracks.length;
+  const hasAccessPoints = !!orderedAccessPoints.length;
+  const hasDiggingPath = !!orderedDiggingPath.length;
+  const hasDocumentaries = !!orderedDocumentaries.length;
+
   if (!location) {
     return (
       <aside className="h-full w-full overflow-y-auto bg-[#0F1720] p-5 text-white md:p-6">
@@ -236,55 +249,50 @@ export default function CityPanelSupabase({
 
         {!loading && isExpanded && (
           <>
-            <Section title="Sounds & Microscenes">
-              <p className="text-sm leading-relaxed text-gray-300">
-                {fallback(
-                  location.sounds_and_microscenes,
-                  "No sounds and microscenes notes yet."
-                )}
-              </p>
-            </Section>
+            {hasSoundsAndMicroscenes && (
+              <Section title="Sounds & Microscenes">
+                <p className="text-sm leading-relaxed text-gray-300">
+                  {location.sounds_and_microscenes}
+                </p>
+              </Section>
+            )}
 
-            <Section title="Scene Essentials">
-              <p className="text-sm leading-relaxed text-gray-300">
-                {fallback(
-                  sceneEssentials?.notes,
-                  "No scene essentials notes yet."
-                )}
-              </p>
-            </Section>
+            {hasSceneEssentials && (
+              <Section title="Scene Essentials">
+                <p className="text-sm leading-relaxed text-gray-300">
+                  {sceneEssentials?.notes}
+                </p>
+              </Section>
+            )}
 
-            <Section title="Resident Backbone">
-              <p className="text-sm leading-relaxed text-gray-300">
-                {fallback(
-                  sceneEssentials?.resident_backbone,
-                  "No resident backbone notes yet."
-                )}
-              </p>
-            </Section>
+            {hasResidentBackbone && (
+              <Section title="Resident Backbone">
+                <p className="text-sm leading-relaxed text-gray-300">
+                  {sceneEssentials?.resident_backbone}
+                </p>
+              </Section>
+            )}
 
-            <Section title="How the Scene Functions">
-              <p className="text-sm leading-relaxed text-gray-300">
-                {fallback(
-                  sceneEssentials?.how_scene_functions,
-                  "No scene function notes yet."
-                )}
-              </p>
-            </Section>
+            {hasHowSceneFunctions && (
+              <Section title="How the Scene Functions">
+                <p className="text-sm leading-relaxed text-gray-300">
+                  {sceneEssentials?.how_scene_functions}
+                </p>
+              </Section>
+            )}
 
-            <Section title="Current Energy">
-              <p className="text-sm leading-relaxed text-gray-300">
-                {fallback(
-                  sceneEssentials?.current_energy,
-                  "No current energy notes yet."
-                )}
-              </p>
-            </Section>
+            {hasCurrentEnergy && (
+              <Section title="Current Energy">
+                <p className="text-sm leading-relaxed text-gray-300">
+                  {sceneEssentials?.current_energy}
+                </p>
+              </Section>
+            )}
 
-            <Section title="DJs by Generation">
-              {!!sceneEssentials?.djs_by_generation?.length ? (
+            {hasDjsByGeneration && (
+              <Section title="DJs by Generation">
                 <div className="space-y-4">
-                  {sceneEssentials.djs_by_generation.map((group) => (
+                  {sceneEssentials?.djs_by_generation.map((group) => (
                     <div key={group.generation}>
                       <p className="text-sm font-medium text-white">
                         {group.generation}
@@ -295,17 +303,13 @@ export default function CityPanelSupabase({
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-sm leading-relaxed text-gray-400">
-                  No DJ generation data yet.
-                </p>
-              )}
-            </Section>
+              </Section>
+            )}
 
-            <Section title="Clubs">
-              {!!sceneEssentials?.clubs?.length ? (
+            {hasClubs && (
+              <Section title="Clubs">
                 <div className="space-y-4">
-                  {sceneEssentials.clubs.map((club) => (
+                  {sceneEssentials?.clubs.map((club) => (
                     <div key={club.name}>
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-sm font-medium text-white">
@@ -325,40 +329,36 @@ export default function CityPanelSupabase({
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-sm leading-relaxed text-gray-400">
-                  No club data yet.
-                </p>
-              )}
-            </Section>
+              </Section>
+            )}
 
-            <Section title="Sonic Identity">
-              <p className="text-sm leading-relaxed text-gray-300">
-                {fallback(
-                  sonicIdentity?.description,
-                  "No sonic identity notes yet."
-                )}
-              </p>
-            </Section>
-
-            <Section title="Dancefloor Behaviour">
-              <div className="space-y-3">
+            {hasSonicIdentity && (
+              <Section title="Sonic Identity">
                 <p className="text-sm leading-relaxed text-gray-300">
-                  {fallback(
-                    sonicIdentity?.dancefloor_behaviour,
-                    "No dancefloor behaviour notes yet."
-                  )}
+                  {sonicIdentity?.description}
                 </p>
-                {isNonEmpty(sonicIdentity?.tempo_range) && (
-                  <p className="text-sm leading-relaxed text-gray-400">
-                    Tempo range: {sonicIdentity?.tempo_range}
-                  </p>
-                )}
-              </div>
-            </Section>
+              </Section>
+            )}
 
-            <Section title="Scene-Defining Mix">
-              {!!orderedMixes.length ? (
+            {hasDancefloorBehaviour && (
+              <Section title="Dancefloor Behaviour">
+                <div className="space-y-3">
+                  {isNonEmpty(sonicIdentity?.dancefloor_behaviour) && (
+                    <p className="text-sm leading-relaxed text-gray-300">
+                      {sonicIdentity?.dancefloor_behaviour}
+                    </p>
+                  )}
+                  {isNonEmpty(sonicIdentity?.tempo_range) && (
+                    <p className="text-sm leading-relaxed text-gray-400">
+                      Tempo range: {sonicIdentity?.tempo_range}
+                    </p>
+                  )}
+                </div>
+              </Section>
+            )}
+
+            {hasMixes && (
+              <Section title="Scene-Defining Mix">
                 <div className="space-y-4">
                   {orderedMixes.map((mix) => (
                     <div key={mix.id}>
@@ -383,15 +383,11 @@ export default function CityPanelSupabase({
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-sm leading-relaxed text-gray-400">
-                  No scene-defining mix yet.
-                </p>
-              )}
-            </Section>
+              </Section>
+            )}
 
-            <Section title="Seminal Tracks">
-              {!!orderedTracks.length ? (
+            {hasTracks && (
+              <Section title="Seminal Tracks">
                 <ul className="space-y-4 text-sm text-gray-300">
                   {orderedTracks.map((track) => (
                     <li key={track.id}>
@@ -407,15 +403,11 @@ export default function CityPanelSupabase({
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p className="text-sm leading-relaxed text-gray-400">
-                  No seminal tracks yet.
-                </p>
-              )}
-            </Section>
+              </Section>
+            )}
 
-            <Section title="Access Points">
-              {!!orderedAccessPoints.length ? (
+            {hasAccessPoints && (
+              <Section title="Access Points">
                 <div className="space-y-4">
                   {orderedAccessPoints.map((item) => (
                     <div key={item.id}>
@@ -450,15 +442,11 @@ export default function CityPanelSupabase({
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-sm leading-relaxed text-gray-400">
-                  No access points yet.
-                </p>
-              )}
-            </Section>
+              </Section>
+            )}
 
-            <Section title="Digging Path">
-              {!!orderedDiggingPath.length ? (
+            {hasDiggingPath && (
+              <Section title="Digging Path">
                 <ol className="space-y-4 text-sm text-gray-300">
                   {orderedDiggingPath.map((step) => (
                     <li key={step.id}>
@@ -471,15 +459,11 @@ export default function CityPanelSupabase({
                     </li>
                   ))}
                 </ol>
-              ) : (
-                <p className="text-sm leading-relaxed text-gray-400">
-                  No digging path yet.
-                </p>
-              )}
-            </Section>
+              </Section>
+            )}
 
-            <Section title="Documentaries / Further Viewing">
-              {!!orderedDocumentaries.length ? (
+            {hasDocumentaries && (
+              <Section title="Documentaries / Further Viewing">
                 <div className="space-y-4">
                   {orderedDocumentaries.map((doc) => (
                     <div key={doc.id}>
@@ -504,12 +488,8 @@ export default function CityPanelSupabase({
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-sm leading-relaxed text-gray-400">
-                  No documentaries yet.
-                </p>
-              )}
-            </Section>
+              </Section>
+            )}
           </>
         )}
       </div>
