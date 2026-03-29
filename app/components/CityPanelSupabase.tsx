@@ -61,6 +61,7 @@ function Section({
 export default function CityPanelSupabase({
   location,
 }: CityPanelSupabaseProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const [sceneEssentials, setSceneEssentials] =
     useState<SceneEssentialsRow | null>(null);
   const [sonicIdentity, setSonicIdentity] =
@@ -77,6 +78,7 @@ export default function CityPanelSupabase({
   useEffect(() => {
     async function loadCityData() {
       if (!location) {
+        setIsExpanded(false);
         setSceneEssentials(null);
         setSonicIdentity(null);
         setSeminalTracks([]);
@@ -87,6 +89,7 @@ export default function CityPanelSupabase({
         return;
       }
 
+      setIsExpanded(false);
       setLoading(true);
 
       try {
@@ -213,13 +216,25 @@ export default function CityPanelSupabase({
               {location.summary}
             </p>
           )}
+
+          {!loading && (
+            <div className="mt-5">
+              <button
+                type="button"
+                onClick={() => setIsExpanded((prev) => !prev)}
+                className="inline-flex items-center rounded-full border border-teal-500/40 bg-teal-500/10 px-4 py-2 text-sm font-medium text-teal-200 transition hover:border-teal-400/60 hover:bg-teal-500/15"
+              >
+                {isExpanded ? "Hide Scene" : "Explore Scene"}
+              </button>
+            </div>
+          )}
         </header>
 
         {loading && (
           <p className="text-sm text-gray-400">Loading scene data...</p>
         )}
 
-        {!loading && (
+        {!loading && isExpanded && (
           <>
             <Section title="Sounds & Microscenes">
               <p className="text-sm leading-relaxed text-gray-300">
