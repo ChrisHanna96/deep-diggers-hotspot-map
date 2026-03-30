@@ -44,7 +44,7 @@ export default function ClientHomeSupabase({
             className="whitespace-nowrap text-[10px] font-medium leading-none text-teal-200 sm:text-[11px] md:text-[15px] md:leading-snug"
             style={{ textShadow: '0 1px 10px rgba(0,0,0,0.55)' }}
           >
-            Explore the map — drag, zoom, and select a city
+            Global Deep Diggers Map — drag, zoom, and select a city
           </p>
         </div>
 
