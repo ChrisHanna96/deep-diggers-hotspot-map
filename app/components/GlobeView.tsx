@@ -9,6 +9,8 @@ const START_POV = { lat: 20, lng: 0, altitude: 2.2 }
 const MOBILE_BREAKPOINT = 768
 const ZOOM_ALTITUDE = 1.2
 const ZOOM_DURATION_MS = 900
+const RESUME_DELAY_MS = 3000
+const RETURN_DURATION_MS = 800
 
 export default function GlobeView({ points, onSelectCity }: any) {
   const globeRef = useRef<any>(null)
@@ -73,13 +75,19 @@ export default function GlobeView({ points, onSelectCity }: any) {
     }
 
     resumeTimerRef.current = setTimeout(() => {
-      enableAutoRotate()
-    }, 3000)
+      if (!globeRef.current) return
+
+      globeRef.current.pointOfView(START_POV, RETURN_DURATION_MS)
+
+      window.setTimeout(() => {
+        enableAutoRotate()
+      }, RETURN_DURATION_MS)
+    }, RESUME_DELAY_MS)
   }
 
   const resetView = () => {
     if (!globeRef.current) return
-    globeRef.current.pointOfView(START_POV, 800)
+    globeRef.current.pointOfView(START_POV, RETURN_DURATION_MS)
     pauseAndResume()
   }
 
