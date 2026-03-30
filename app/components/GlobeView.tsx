@@ -6,6 +6,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 const Globe = dynamic(() => import('react-globe.gl'), { ssr: false })
 
 const START_POV = { lat: 20, lng: 0, altitude: 2.2 }
+const MOBILE_BREAKPOINT = 768
+const ZOOM_ALTITUDE = 1.2
+const ZOOM_DURATION_MS = 900
 
 export default function GlobeView({ points, onSelectCity }: any) {
   const globeRef = useRef<any>(null)
@@ -17,7 +20,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
   useEffect(() => {
     function updateSize() {
-      const isDesktop = window.innerWidth >= 768
+      const isDesktop = window.innerWidth >= MOBILE_BREAKPOINT
 
       setDimensions({
         width: isDesktop
@@ -37,7 +40,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
 
   const safePoints = useMemo(() => {
     const isMobile =
-      typeof window !== 'undefined' && window.innerWidth < 768
+      typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT
 
     return points.map((p: any) => ({
       ...p,
@@ -165,6 +168,17 @@ export default function GlobeView({ points, onSelectCity }: any) {
         pointColor={() => '#5eead4'}
         pointsMerge={false}
         onPointClick={(point: any) => {
+          if (globeRef.current) {
+            globeRef.current.pointOfView(
+              {
+                lat: Number(point.lat),
+                lng: Number(point.lng),
+                altitude: ZOOM_ALTITUDE,
+              },
+              ZOOM_DURATION_MS
+            )
+          }
+
           pauseAndResume()
           onSelectCity(point)
         }}
