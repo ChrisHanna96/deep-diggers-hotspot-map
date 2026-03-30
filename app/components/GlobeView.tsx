@@ -15,10 +15,12 @@ const RETURN_DURATION_MS = 800
 export default function GlobeView({ points, onSelectCity }: any) {
   const globeRef = useRef<any>(null)
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const returnTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const startPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const updateFrameRef = useRef<number | null>(null)
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+  const [hoveredPointId, setHoveredPointId] = useState<string | null>(null)
 
   useEffect(() => {
     function updateSize() {
@@ -40,15 +42,22 @@ export default function GlobeView({ points, onSelectCity }: any) {
     return () => window.removeEventListener('resize', updateSize)
   }, [])
 
-  const safePoints = useMemo(() => {
-    const isMobile =
-      typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT
+  const isMobile =
+    typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT
 
-    return points.map((p: any) => ({
-      ...p,
-      size: isMobile ? 1.3 : (p.size ?? 1.2),
-    }))
-  }, [points])
+  const safePoints = useMemo(() => {
+    return points.map((p: any) => {
+      const pointId = String(p.id)
+      const isHovered = !isMobile && hoveredPointId === pointId
+
+      return {
+        ...p,
+        size: isHovered
+          ? (isMobile ? 1.3 : 1.7)
+          : (isMobile ? 1.3 : (p.size ?? 1.2)),
+      }
+    })
+  }, [points, hoveredPointId, isMobile])
 
   const enableAutoRotate = () => {
     const controls = globeRef.current?.controls?.()
@@ -67,19 +76,28 @@ export default function GlobeView({ points, onSelectCity }: any) {
     controls.autoRotate = false
   }
 
-  const pauseAndResume = () => {
-    disableAutoRotate()
-
+  const clearTimers = () => {
     if (resumeTimerRef.current) {
       clearTimeout(resumeTimerRef.current)
+      resumeTimerRef.current = null
     }
+
+    if (returnTimerRef.current) {
+      clearTimeout(returnTimerRef.current)
+      returnTimerRef.current = null
+    }
+  }
+
+  const pauseAndResume = () => {
+    disableAutoRotate()
+    clearTimers()
 
     resumeTimerRef.current = setTimeout(() => {
       if (!globeRef.current) return
 
       globeRef.current.pointOfView(START_POV, RETURN_DURATION_MS)
 
-      window.setTimeout(() => {
+      returnTimerRef.current = setTimeout(() => {
         enableAutoRotate()
       }, RETURN_DURATION_MS)
     }, RESUME_DELAY_MS)
@@ -140,7 +158,7 @@ export default function GlobeView({ points, onSelectCity }: any) {
     startWhenReady()
 
     return () => {
-      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
+      clearTimers()
       if (startPollRef.current) clearInterval(startPollRef.current)
       if (updateFrameRef.current) cancelAnimationFrame(updateFrameRef.current)
       globeRef.current?.__cleanupAutorotate?.()
@@ -173,8 +191,14 @@ export default function GlobeView({ points, onSelectCity }: any) {
         pointLng="lng"
         pointAltitude={0.03}
         pointRadius="size"
-        pointColor={() => '#5eead4'}
+        pointColor={(point: any) =>
+          !isMobile && hoveredPointId === String(point.id) ? '#99f6e4' : '#5eead4'
+        }
         pointsMerge={false}
+        onPointHover={(point: any | null) => {
+          if (isMobile) return
+          setHoveredPointId(point ? String(point.id) : null)
+        }}
         onPointClick={(point: any) => {
           if (globeRef.current) {
             globeRef.current.pointOfView(
