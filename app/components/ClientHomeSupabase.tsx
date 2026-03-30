@@ -39,9 +39,9 @@ export default function ClientHomeSupabase({
   return (
     <main className="flex h-[100dvh] w-screen flex-col bg-black text-white md:h-screen md:flex-row">
       <section className="relative z-0 h-[55dvh] w-full overflow-hidden md:h-full md:w-[58%]">
-        <div className="pointer-events-none absolute left-4 right-20 top-4 z-30 md:left-6 md:right-24 md:top-5">
+        <div className="pointer-events-none absolute bottom-3 left-3 right-3 z-30 md:bottom-auto md:left-6 md:right-auto md:top-5">
           <p
-            className="text-sm font-medium leading-snug text-teal-200 md:text-[15px]"
+            className="whitespace-nowrap text-[10px] font-medium leading-none text-teal-200 sm:text-[11px] md:text-[15px] md:leading-snug"
             style={{ textShadow: '0 1px 10px rgba(0,0,0,0.55)' }}
           >
             Explore the map — drag, zoom, and select a city

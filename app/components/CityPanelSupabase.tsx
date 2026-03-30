@@ -292,8 +292,8 @@ export default function CityPanelSupabase({
             {hasDjsByGeneration && (
               <Section title="DJs by Generation">
                 <div className="space-y-4">
-                  {sceneEssentials?.djs_by_generation.map((group) => (
-                    <div key={group.generation}>
+                  {sceneEssentials?.djs_by_generation.map((group, index) => (
+                    <div key={`${group.generation}-${index}`}>
                       <p className="text-sm font-medium text-white">
                         {group.generation}
                       </p>
@@ -309,8 +309,10 @@ export default function CityPanelSupabase({
             {hasClubs && (
               <Section title="Clubs">
                 <div className="space-y-4">
-                  {sceneEssentials?.clubs.map((club) => (
-                    <div key={club.name}>
+                  {sceneEssentials?.clubs.map((club, index) => (
+                    <div
+                      key={`${club.name ?? "club"}-${club.status ?? "status"}-${index}`}
+                    >
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-sm font-medium text-white">
                           {club.name}
